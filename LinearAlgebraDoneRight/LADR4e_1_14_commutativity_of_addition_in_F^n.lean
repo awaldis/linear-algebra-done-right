@@ -12,8 +12,8 @@ variable {y : Fin n → 𝔽}
 
 example : x + y = y + x := by
 calc x + y
-    = fun i => x i + y i  := by funext i; simp [Pi.add_apply]
-  _ = fun i => (x + y) i  := by funext i; simp [Pi.add_apply]
-  _ = fun i => (y + x) i  := by simp [add_comm]
-  _ = fun i => y i + x i  := by funext i; simp [Pi.add_apply]
-  _ = y + x               := by funext i; simp [Pi.add_apply]
+    = fun i => x i + y i  := by rw   [Pi.add_def]
+  _ = fun i => (x + y) i  := by simp [Pi.add_apply]
+  _ = fun i => (y + x) i  := by rw   [add_comm]
+  _ = fun i => y i + x i  := by simp [Pi.add_apply]
+  _ = y + x               := by rw   [Pi.add_def]
