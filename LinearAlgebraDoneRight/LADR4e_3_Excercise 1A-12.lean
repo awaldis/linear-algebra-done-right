@@ -12,17 +12,22 @@ variable {b : 𝔽}
 
 example : (a * b) • x  = a • (b • x) := by
 calc (a * b) • x
-      -- Convert vector x to functional form , scaled by (a*b).
-    = fun i => (a * b) • (x i) := by rw [Pi.smul_def]
+      -- Convert vector x to functional form
+    = (a * b) • fun i=>(x i) := by rw [Pi.smul_def]
 
-      -- Since (x i) ∈ 𝔽, scalar mult IS field mult
-  _ = fun i => (a * b) * (x i) := by rfl
+      -- Move the (a * b) inside the function, this is equivalent to
+      -- multiplying each point in the vector individually.
+      -- Since (x i) ∈ 𝔽, we can use field multiplication.
+  _ = fun i=>(a * b) * (x i) := by rfl
 
       -- Rearrange according to field associativity.
-  _ = fun i => a * (b * (x i)) := by simp [mul_assoc]
+  _ = fun i=>a * (b * (x i)) := by simp [mul_assoc]
 
-      -- Convert back to scaler multiplication.
-  _ = fun i => a • (b • (x i)) := by rfl
+      -- Move the "a" back outside the function.
+  _ = a • fun i=>(b * (x i))  := by rfl
+
+      -- Move the "b" back outside the function.
+  _ = a • ( b • fun i=>(x i))  := by rfl
 
       -- Reduce x back to a vector.
   _ = a • (b • x) := by simp [Pi.smul_def]
