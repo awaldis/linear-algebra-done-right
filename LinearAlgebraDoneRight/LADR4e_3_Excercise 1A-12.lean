@@ -13,7 +13,7 @@ variable {b : 𝔽}
 example : (a * b) • x  = a • (b • x) := by
 calc (a * b) • x
       -- Convert vector x to functional form
-    = (a * b) • fun i=>(x i) := by rw [Pi.smul_def]
+    = (a * b) • fun i=>(x i) := by rfl
 
       -- Move the (a * b) inside the function, this is equivalent to
       -- multiplying each point in the vector individually.
@@ -30,4 +30,4 @@ calc (a * b) • x
   _ = a • ( b • fun i=>(x i))  := by rfl
 
       -- Reduce x back to a vector.
-  _ = a • (b • x) := by simp [Pi.smul_def]
+  _ = a • (b • x) := by rfl
