@@ -12,16 +12,16 @@ variable {w : V}  -- first candidate for additive inverse
 variable {w' : V} -- second candidate for additive inverse
 
 example
-  -- both w and w' have the additive inverse property
-  (h_w_add_inv : ∀ v : V, v + w  = (0 : V))
-  (h_w'_add_inv : ∀ v : V, v + w' = (0 : V))
+  -- `w` and `w'` are both additive inverses of `v`
+  (h_w_add_inv : v + w = (0 : V))
+  (h_w'_add_inv : v + w' = (0 : V))
 
   -- Show that w and w' must be identical.
   : w = w' := by
   calc w
       = w +    0     := by rw [add_zero]
     _ = w + (v + w') := by rw [h_w'_add_inv]
-    _ = (w + v) + w' := by rw [AddSemigroup.add_assoc]
+    _ = (w + v) + w' := by rw [add_assoc]
     _ = (v + w) + w' := by simp [add_comm]
     _ =    0    + w' := by rw [h_w_add_inv]
     _ =    w'   + 0  := by rw [add_comm]
