@@ -10,7 +10,7 @@ variable {V : Type*} [AddCommGroup V] [Module 𝔽 V]
 variable {zero' : V} -- candidate second additive identity
 
 example
-  -- zero' is an addditive identity
+  -- zero' is an additive identity
   (h_zero'_add_id : ∀ v : V, v + zero' = v)
 
   -- Show that zero' and the original zero are identical.
