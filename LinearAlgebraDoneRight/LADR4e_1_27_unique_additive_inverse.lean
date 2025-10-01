@@ -12,7 +12,7 @@ variable {w : V}  -- first candidate for additive inverse
 variable {w' : V} -- second candidate for additive inverse
 
 example
-  -- both w and w' have the addditive inverse property
+  -- both w and w' have the additive inverse property
   (h_w_add_inv : ∀ v : V, v + w  = (0 : V))
   (h_w'_add_inv : ∀ v : V, v + w' = (0 : V))
 
