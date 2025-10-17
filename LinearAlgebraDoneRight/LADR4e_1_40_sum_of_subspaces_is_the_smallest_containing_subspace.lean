@@ -183,13 +183,14 @@ lemma each_subspace_in_sum (j : Fin m) :
                                                        simp [Finset.sum_ite_eq']
       _ = ∑ i, if i = j then v else 0 := by rw[]
 
--- PART 3: Show that V₁ + ... + Vₘ is the SMALLEST such subspace
--- ==============================================================
-
+--------------------------------------------------------------------------------
+/-!
+Show that every subspace of V that contains V₁,...,Vₘ must also contain
+V₁ + ... + Vₘ.
+-/
 theorem sum_is_smallest (W : Submodule 𝔽 V)
   (h_contains : ∀ i, Vᵢ i ≤ W) :  -- W contains each Vᵢ i
   (sumSet Vᵢ ⊆ W) := by
---  (∀ v, v ∈ sumSet Vᵢ → v ∈ W) := by
 
   -- The textbook says: "Every subspace of V containing V₁,...,Vₘ contains
   -- V₁ + ... + Vₘ (because subspaces must contain all finite sums of their elements)"
@@ -211,7 +212,7 @@ theorem sum_is_smallest (W : Submodule 𝔽 V)
   -- Since W contains each Vᵢ i, it contains each vlist i
   have vlist_in_W : ∀ i, vlist i ∈ W := by
     intro i
-    -- We have choice i ∈ Vᵢ i
+    -- We have vlist i ∈ Vᵢ i
     -- We have Vᵢ i ⊆ W (from h_contains)
     exact h_contains i (h_vlist_mem i)
 
@@ -222,61 +223,9 @@ theorem sum_is_smallest (W : Submodule 𝔽 V)
   rw [(h_vlist_sum : v = ∑ i, vlist i)]
   -- New goal: ∑ i, vlist i ∈ ↑W
 
-  -- We need to show ∑ i, vlist i ∈ W
-  -- We'll use induction on the sum
-
-  -- Convert the sum to a fold for easier induction
-  have : ∑ i : Fin m, vlist i ∈ W := by
-    -- Key fact: W contains any finite sum of its elements
-    apply Submodule.sum_mem
+  -- The sum of the vectors in vlist are in W IF the vectors are all in W.
+  apply Submodule.sum_mem
     -- New Goal: ∀ c ∈ Finset.univ, vlist c ∈ W
-    intro i _
+  intro i _
     -- New Goal: vlist i ∈ W
-    exact (vlist_in_W : ∀ (i : Fin m), vlist i ∈ W) i
-
-  exact (this : ∑ i, vlist i ∈ W)
-
-/-! ------------------------------------------------------------
-(2) Each subspace Vᵢ i is contained in the sum.
-    Intuition: given `x ∈ Vᵢ i`, build a function `f` that picks `x` at
-    index `i` and `0` elsewhere; then `∑ f = x`.
-------------------------------------------------------------- -/
-lemma each_Vi_le_sum {m : ℕ} (Vᵢ : Fin m → Submodule 𝔽 V) (i : Fin m) :
-  Vᵢ i ≤ sumSet Vᵢ := by
-  --classical
-  -- Start with an arbitrary x ∈ Vᵢ i and prove x ∈ sumSub Vᵢ.
-  intro x
-  intro hx
-  -- Define f: pick x at index i, and 0 elsewhere.
-  -- This is often called the "Kronecker delta" trick.
---  use fun j => if j = i then x else 0
---  refine ⟨(fun j => if j = i then x else 0), ?all_in, ?sum_is_x⟩
-  refine ⟨(fun j => if j = i then x else 0), ?andy_goal, ?_⟩
-  · -- Show: for every j, f j ∈ Vᵢ j.
-    intro j
-    by_cases hji : j = i
-    · -- At the special index i, f i = x ∈ Vᵢ i.
-      -- We rewrite by hji so Lean sees the branches.
-      simpa [hji] using hx
-    · -- Everywhere else, f j = 0, and 0 belongs to every subspace.
-      simpa [hji] using (Vᵢ j).zero_mem
-  · -- Show: the finite sum of f over all indices is exactly x.
-    -- Over a finite type like `Fin m`, this is a standard "only one nonzero
-    -- term" calculation: the sum collapses to the i-th term.
-    have hi : i ∈ (Finset.univ : Finset (Fin m)) := by
-      -- Every element of `Fin m` is in `univ`.
-      simpa using (Finset.mem_univ i)
-    -- Lean has a helper lemma `Finset.sum_ite_eq'` for sums of `if`-splits.
-    -- We spell the line as a `calc` to make the equality explicit.
-    calc x
---        = (∑ j : Fin m, (if j = i then x else 0)) := by simp
-       = (∑ j ∈ (Finset.univ : Finset (Fin m)), (if j = i then x else 0)) := by
-          -- now use any finset lemma you like
-          simp [Finset.sum_ite_eq']
-       _ = (∑ j : Fin m, (if j = i then x else 0)) := by simp
-/-     calc x =
-      ∑ j, (if j = i then x else 0)
-          := by
-              -- This is exactly the intended "single nonzero" sum.
-              simpa [Finset.sum_ite_eq', hi]
--/
+  exact (vlist_in_W : ∀ (i : Fin m), vlist i ∈ W) i

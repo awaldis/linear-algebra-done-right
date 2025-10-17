@@ -1,2 +1,3 @@
 import LinearAlgebraDoneRight.Basic
 import LinearAlgebraDoneRight.LADR4e_3_Exercise_1A_11
+import LinearAlgebraDoneRight.LADR4e_1_40_sum_of_subspaces_is_the_smallest_containing_subspace
