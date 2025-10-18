@@ -184,8 +184,7 @@ lemma each_subspace_in_sum (j : Fin m) :
       _ = ∑ i, if i = j then v else 0 := by rw[]
 
 --------------------------------------------------------------------------------
-/-!
-Show that every subspace of V that contains V₁,...,Vₘ must also contain
+/--Show that every subspace of V that contains V₁,...,Vₘ must also contain
 V₁ + ... + Vₘ.
 -/
 theorem sum_is_smallest (W : Submodule 𝔽 V)
@@ -209,23 +208,18 @@ theorem sum_is_smallest (W : Submodule 𝔽 V)
   -- We can prove that summing the list of vectors produces v.
   (h_vlist_sum : v = ∑ i, vlist i)⟩
 
-  -- Since W contains each Vᵢ i, it contains each vlist i
-  have vlist_in_W : ∀ i, vlist i ∈ W := by
-    intro i
-    -- We have vlist i ∈ Vᵢ i
-    -- We have Vᵢ i ⊆ W (from h_contains)
-    exact h_contains i (h_vlist_mem i)
-
-  -- Since W is a subspace, it contains finite sums of its elements
-  -- So W contains ∑ i, choice i = v
-
   -- Current goal: v ∈ ↑W
+  -- We can replace 'v' with the vlist summation.
   rw [(h_vlist_sum : v = ∑ i, vlist i)]
   -- New goal: ∑ i, vlist i ∈ ↑W
 
-  -- The sum of the vectors in vlist are in W IF the vectors are all in W.
+  -- The SUM of the vectors in vlist are in W IF the vectors are all ELEMENTS
+  -- in W.
   apply Submodule.sum_mem
-    -- New Goal: ∀ c ∈ Finset.univ, vlist c ∈ W
+  -- New Goal: ∀ c ∈ Finset.univ, vlist c ∈ W
+
   intro i _
-    -- New Goal: vlist i ∈ W
-  exact (vlist_in_W : ∀ (i : Fin m), vlist i ∈ W) i
+  ----------------------- New Goal: vlist i ∈ W
+  refine ((h_contains : ∀ (i : Fin m), Vᵢ i ≤ W) i) ?_
+  ------------------------- New Goal: vlist i ∈ Vᵢ i
+  exact (h_vlist_mem : ∀ (i : Fin m), vlist i ∈ Vᵢ i) i
