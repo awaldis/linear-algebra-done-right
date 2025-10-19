@@ -38,7 +38,7 @@ theorem sum_is_subspace :
   -- The underlying set of vectors is the one defined above.
   carrier := sumSet Vᵢ
 
-  -- Proof 1: The subspace must contain the zero vector.
+  -- Prove the set in question contains the zero vector.
   zero_mem' := by
     show 0 ∈ sumSet Vᵢ
     unfold sumSet
@@ -62,7 +62,7 @@ theorem sum_is_subspace :
       show 0 = ∑ i, 0
       exact Finset.sum_const_zero.symm
 
-  -- Proof 2: The subspace must be closed under addition.
+  -- Prove the set in question is closed under addition
   add_mem' := by
     -- Current goal: ∀ {a b : V}, a ∈ sumSet Vᵢ → b ∈ sumSet Vᵢ → a + b ∈ sumSet Vᵢ
     intro v₁ v₂
@@ -103,7 +103,7 @@ theorem sum_is_subspace :
         _ = ∑ i, (v₁list i + v₂list i)    := by rw [Finset.sum_add_distrib]
         _ = ∑ i, (v₁list + v₂list) i      := by rw [Pi.add_def]
 
-  -- Proof 3: The subspace must be closed under scalar multiplication.
+  -- Prove the set in question is closed under scalar multiplication.
   smul_mem' := by
     -- We take an arbitrary scalar `c` and a vector `v` from our set.
     intro c v hv
@@ -131,11 +131,10 @@ theorem sum_is_subspace :
   }
   rfl
 
-  -- PART 2: Show that each Vᵢ is contained in V₁ + ... + Vₘ
--- =========================================================
---theorem each_subspace_in_sum (j : Fin m) :
---  ∀ v ∈ Vᵢ j, sumSet Vᵢ v := by
-lemma each_subspace_in_sum (j : Fin m) :
+--------------------------------------------------------------------------------
+/--Show that each Vᵢ is contained in V₁ + ... + Vₘ
+-/
+theorem each_subspace_in_sum (j : Fin m) :
   ↑(Vᵢ j) ⊆ sumSet Vᵢ := by
 
   intro v
@@ -147,8 +146,6 @@ lemma each_subspace_in_sum (j : Fin m) :
   -- The textbook says: "consider sums v₁ + ... + vₘ where all except one
   -- of the vₖ's are 0"
   -- So we write v = 0 + ... + 0 + v + 0 + ... + 0 (v in position j)
-
-  --unfold sumSet
 
   -- Use a witness that is 0 everywhere except v at position j
   use fun i => if i = j then v else 0
@@ -165,8 +162,8 @@ lemma each_subspace_in_sum (j : Fin m) :
       -- Since i = j in this case, we can replace the if-then-else with the
       -- positive clause.
       rw [if_pos h_i_equals_j_status] -- New goal: v ∈ Vᵢ i
-      rw [h_i_equals_j_status]        -- New goal: v ∈ Vᵢ j
-      exact (hv_is_in_subspace_j : v ∈ Vᵢ j)
+      rw [       h_i_equals_j_status] -- New goal: v ∈ Vᵢ j
+      exact (hv_is_in_subspace_j :                 v ∈ Vᵢ j)
 
     · -- Case: i ≠ j
       -- Since ¬(i = j) in this case, we can replace the if-then-else with the
@@ -188,11 +185,8 @@ lemma each_subspace_in_sum (j : Fin m) :
 V₁ + ... + Vₘ.
 -/
 theorem sum_is_smallest (W : Submodule 𝔽 V)
-  (h_contains : ∀ i, Vᵢ i ≤ W) :  -- W contains each Vᵢ i
+  (h_W_contains_every_Vᵢ : ∀ i, Vᵢ i ≤ W) :
   (sumSet Vᵢ ⊆ W) := by
-
-  -- The textbook says: "Every subspace of V containing V₁,...,Vₘ contains
-  -- V₁ + ... + Vₘ (because subspaces must contain all finite sums of their elements)"
 
   intro v
   -- New Goal: v ∈ sumSet Vᵢ → v ∈ ↑W
@@ -218,8 +212,11 @@ theorem sum_is_smallest (W : Submodule 𝔽 V)
   apply Submodule.sum_mem
   -- New Goal: ∀ c ∈ Finset.univ, vlist c ∈ W
 
-  intro i _
-  ----------------------- New Goal: vlist i ∈ W
-  refine ((h_contains : ∀ (i : Fin m), Vᵢ i ≤ W) i) ?_
+  intro (i : Fin m)
+  -- New Goal: i ∈ Finset.univ → vlist i ∈ W
+  intro (_ :   i ∈ Finset.univ)  -- throw away, not needed for this proof
+
+  ---------------------------------- New Goal: vlist i ∈ W
+  refine ((h_W_contains_every_Vᵢ : ∀ (i : Fin m), Vᵢ i ≤ W) i) ?_
   ------------------------- New Goal: vlist i ∈ Vᵢ i
   exact (h_vlist_mem : ∀ (i : Fin m), vlist i ∈ Vᵢ i) i
