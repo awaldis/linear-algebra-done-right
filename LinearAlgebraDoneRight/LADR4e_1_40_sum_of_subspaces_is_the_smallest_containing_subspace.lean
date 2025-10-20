@@ -7,9 +7,15 @@ variable {𝔽 : Type*} [Field 𝔽]
 variable {V : Type*} [AddCommGroup V] [Module 𝔽 V]
 
 /-!
-`sumSet Vᵢ` is the set of all finite sums `∑ i, vector_list i` with each vector
-chosen, one each, from a list of subspaces (`Vᵢ`)
- `vector_list i ∈ Vᵢ i`.
+# Theorem 1.40 - sum of subspaces is the smallest containing subspace
+## From:
+Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
+edition, Undergraduate Texts in Mathematics, Springer, 2024
+-/
+
+--------------------------------------------------------------------------------
+/--`sumSet Vᵢ` is the set of all finite sums (`∑ i, vector_list i`) with each
+vector chosen, one each, from a list of subspaces `Vᵢ` (`vector_list i ∈ Vᵢ i`).
 -/
 def sumSet {m : ℕ} (Vᵢ : Fin m → Submodule 𝔽 V) : Set V :=
   {x | ∃ vector_list : Fin m → V, (∀ i, vector_list i ∈ Vᵢ i) ∧
@@ -18,17 +24,9 @@ def sumSet {m : ℕ} (Vᵢ : Fin m → Submodule 𝔽 V) : Set V :=
 -- Let's consider a finite collection of m subspaces, indexed by Fin m.
 variable {m : ℕ} (Vᵢ : Fin m → Subspace 𝔽 V)
 
--- ##################################################################
--- Part 1: Show that the sum is a subspace (Explicit Proof)
--- ##################################################################
-
--- We first define the set of vectors that constitute the sum.
--- This is the set of all vectors `v` that can be written as a sum of
--- elements `f i`, where each `f i` is from the corresponding subspace `Vᵢ i`.
--- def sum_carrier := {v : V | ∃ f : Fin m → V, (∀ i, f i ∈ Vᵢ i) ∧ v = (Finset.univ).sum f}
-
--- Now, we prove that this set, equipped with the vector space operations,
--- forms a subspace by proving the three required properties.
+--------------------------------------------------------------------------------
+/-- Show that the set formed from the sum of subspaces is itself a subspace.
+-/
 theorem sum_is_subspace :
   ∃ (S : Submodule 𝔽 V), (S : Set V) = sumSet Vᵢ := by
 
@@ -38,7 +36,9 @@ theorem sum_is_subspace :
   -- The underlying set of vectors is the one defined above.
   carrier := sumSet Vᵢ
 
+  ------------------------------------------------------------------------------
   -- Prove the set in question contains the zero vector.
+  ------------------------------------------------------------------------------
   zero_mem' := by
     show 0 ∈ sumSet Vᵢ
     unfold sumSet
@@ -62,7 +62,9 @@ theorem sum_is_subspace :
       show 0 = ∑ i, 0
       exact Finset.sum_const_zero.symm
 
+  ------------------------------------------------------------------------------
   -- Prove the set in question is closed under addition
+  ------------------------------------------------------------------------------
   add_mem' := by
     -- Current goal: ∀ {a b : V}, a ∈ sumSet Vᵢ → b ∈ sumSet Vᵢ → a + b ∈ sumSet Vᵢ
     intro v₁ v₂
@@ -103,31 +105,46 @@ theorem sum_is_subspace :
         _ = ∑ i, (v₁list i + v₂list i)    := by rw [Finset.sum_add_distrib]
         _ = ∑ i, (v₁list + v₂list) i      := by rw [Pi.add_def]
 
+  ------------------------------------------------------------------------------
   -- Prove the set in question is closed under scalar multiplication.
+  ------------------------------------------------------------------------------
   smul_mem' := by
-    -- We take an arbitrary scalar `c` and a vector `v` from our set.
-    intro c v hv
-    -- The assumption `hv` means `v` can be written as a sum using some function `f`.
-    rcases hv with ⟨f, hf_mem, hf_sum⟩
-    -- We need to show `c • v` can be written as a sum.
-    -- We propose the function `c • f`, which maps each index `i` to `c • f i`.
-    use (c • f)
-    -- Two goals, as before:
-    -- 1. Show that each `c • f i` is in the subspace `Vᵢ i`.
-    -- 2. Show that the sum of these components equals `c • v`.
+    -- Current goal: ∀ (c : 𝔽) {x : V}, x ∈ sumSet Vᵢ → c • x ∈ sumSet Vᵢ
+    intro c v
+    -- New goal: v ∈ sumSet Vᵢ → c • v ∈ sumSet Vᵢ
+
+    intro  h_v_in_sumSet
+    -- New goal: c • v ∈ sumSet Vᵢ
+
+    -- Since v is in the set, we can extract assumptions based on the set
+    -- definition.
+    rcases h_v_in_sumSet with ⟨
+      -- There exists a list of vectors associated with v that meet the other criteria.
+      (vlist : Fin m → V),
+      -- We can prove that each vector in the list is a member of it's respective subspace.
+      (h_vlist_mem : ∀ (i : Fin m), vlist i ∈ Vᵢ i),
+      -- We can prove that summing the list of vectors produces v.
+      (h_vlist_sum : v = ∑ i, vlist i)
+      ⟩
+
+    use (c • vlist)
+    -- Changes goal to:
+    -- (∀ (i : Fin m), (c • vlist) i ∈ Vᵢ i) ∧
+    --    c • v = ∑ i, (c • vlist) i
+
     constructor
-    · -- Goal 1: For any `i`, show `c • f i ∈ Vᵢ i`.
-      intro i
+    · -- Goal for this branch: ∀ (i : Fin m), (c • vlist) i ∈ Vᵢ i
+      intro (i : Fin m)
+      -- New goal: (c • vlist) i ∈ Vᵢ i
       -- Since `Vᵢ i` is a subspace, it's closed under scalar multiplication.
-      -- We know `f i ∈ Vᵢ i`, so `c • f i` is also in `Vᵢ i`.
-      exact (Vᵢ i).smul_mem c (hf_mem i)
-    · -- Goal 2: Show the sum equals `c • v`.
-      -- We use the property that scalar multiplication distributes over a sum
-      -- and substitute the known sum for `v`.
+      -- We know `vlist i ∈ Vᵢ i`, so `c • vlist i` is also in `Vᵢ i`.
+      exact (Vᵢ i).smul_mem c (h_vlist_mem i)
+
+    · -- Goal for this branch: c • v = ∑ i, (c • vlist) i
       calc c • v
-        = c • ∑ i, f i   := by rw [hf_sum]
-      _ = ∑ i, c • f i   := by rw [Finset.smul_sum]
-      _ = ∑ i, (c • f) i := by rw [@Pi.smul_def]
+        = c • ∑ i, vlist i   := by rw [h_vlist_sum]
+      _ = ∑ i, c • vlist i   := by rw [Finset.smul_sum]
+      _ = ∑ i, (c • vlist) i := by rw [@Pi.smul_def]
   }
   rfl
 
