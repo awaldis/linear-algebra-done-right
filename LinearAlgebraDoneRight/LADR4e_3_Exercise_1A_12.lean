@@ -1,8 +1,11 @@
----------------------------------------------------------
--- Exercise 1A.12 - associativity of multiplication in 𝔽ⁿ
----------------------------------------------------------
 import Mathlib.Algebra.Field.Basic
 import Mathlib.Data.Fin.Basic
+/-!
+# Exercise 1A.12 - associativity of multiplication in 𝔽ⁿ
+## From:
+Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
+edition, Undergraduate Texts in Mathematics, Springer, 2024
+-/
 
 variable {𝔽 : Type*} [Field 𝔽]
 variable {n : ℕ}
@@ -10,7 +13,7 @@ variable {x : Fin n → 𝔽}
 variable {a : 𝔽}
 variable {b : 𝔽}
 
-example : (a * b) • x  = a • (b • x) := by
+theorem assoc_of_scalar_mul : (a * b) • x  = a • (b • x) := by
 calc (a * b) • x
       -- Convert vector x to functional form
     = (a * b) • fun i=>(x i) := by rfl

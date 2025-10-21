@@ -2,8 +2,10 @@ import Mathlib.Algebra.Field.Basic
 import Mathlib.Data.Fin.Basic
 /-!
 # Exercise 1A.11 - associativity of addition in 𝔽ⁿ
+## From:
+Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
+edition, Undergraduate Texts in Mathematics, Springer, 2024
 -/
-
 variable {𝔽 : Type*} [Field 𝔽]
 variable {n : ℕ}
 variable {x : Fin n → 𝔽}
