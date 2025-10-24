@@ -1,7 +1,4 @@
-import Mathlib.Algebra.Module.Basic
 import Mathlib.Algebra.Module.Submodule.Basic
-import Mathlib.Data.Fin.Basic
-import Mathlib.Algebra.BigOperators.GroupWithZero.Action
 
 variable {𝔽 : Type*} [Field 𝔽]
 variable {V : Type*} [AddCommGroup V] [Module 𝔽 V]
