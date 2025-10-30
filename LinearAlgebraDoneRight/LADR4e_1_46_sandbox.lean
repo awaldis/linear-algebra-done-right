@@ -11,29 +11,17 @@ def V₂ (U W : Submodule 𝔽 V) : Fin 2 → Submodule 𝔽 V
   | 0 => U
   | 1 => W
 
-#check V₂
-#check IsDirectSum (V₂ U W)
-#check ZeroUniqueness (V₂ U W)
-
-theorem direct_sum_two_subspaces_iff_intersection_trivial :
+theorem if_2_subspace_intersect_only_zero_then_direct_sum :
   ((U : Set V) ∩ (W : Set V)) = ({0} : Set V) →
      IsDirectSum (V₂ (U := U) (W := W)) := by
-  --------------------------------------------------------------------------
-  -- (←) Assume `U ∩ W = {0}`.  Show `U + W` is a direct sum (via 1.45).
-  --------------------------------------------------------------------------
+
+  -- Using the imported 1.45 theorem, we can replace the direct sum goal
+  -- a zero uniqueness goal since they are equivalent.
   rw [direct_sum_iff_zero_unique]
+  -- New goal: ↑U ∩ ↑W = {0} → ZeroUniqueness (V₂ U W)
 
   intro h_intersect_is_zero
- --intro vlist
-  -- We’ll use 1.45: it suffices to prove the **zero-uniqueness** condition
-  -- for the two-term family `V₂`.
-  -- That is: if f0 ∈ U, f1 ∈ W and f0 + f1 = 0, then f0 = 0 and f1 = 0.
-  -- Then we conclude `IsDirectSum (V₂ U W)`.
-  --apply direct_sum_iff_zero_unique.mpr
-  --rw [direct_sum_iff_zero_unique (Vᵢ := V₂ (U := U) (W := W)).mpl]
-  -- So the current goal is: `ZeroUniqueness (V₂ U W)`.
-  -- Unfold what we must prove in concrete 2-term form.
-  --unfold ZeroUniqueness
+
   intro vlist
   intro h_vlist_mem h_vlist_sum_zero
 
