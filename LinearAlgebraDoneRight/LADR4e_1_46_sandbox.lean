@@ -25,56 +25,62 @@ theorem if_2_subspace_intersect_only_zero_then_direct_sum :
   intro vlist
   intro h_vlist_mem h_vlist_sum_zero
 
+  -- Break out the two vectors from vlist into `u` and `w` to make the
+  -- correlation to the book more obvious.
+  let u := vlist 0
+  let w := vlist 1
+
   -- `h_vlist_mem` gives us:
-  have h_u_mem : vlist 0 ∈ U := by
+  have h_u_mem : u ∈ U := by
       exact h_vlist_mem 0
-  have h_w_mem : vlist 1 ∈ W := by
+  have h_w_mem : w ∈ W := by
       exact h_vlist_mem 1
 
-  -- `h_sum_zero_fin` gives us `u + w = 0`:
-  have h_sum_zero : vlist 0 + vlist 1 = 0 := by
+  -- `h_vlist_sum_zero` gives us `u + w = 0`:
+  have h_sum_zero : u + w = 0 := by
     -- Simplify the sum over `Fin 2`
     simp [Fin.sum_univ_two] at h_vlist_sum_zero
     exact h_vlist_sum_zero
 
 -- "The equation above implies that u = -w."
-  have h_u_eq_neg_w : vlist 0 = - (vlist 1) := by
-    rw [add_eq_zero_iff_eq_neg] at h_sum_zero
-    exact h_sum_zero
+  have h_u_eq_neg_w : u = -w := by
+    calc u
+        = u - 0       := by rw [sub_zero]
+      _ = u - (u + w) := by rw [h_sum_zero]
+      _ = -w          := by rw [sub_add_cancel_left]
 
 -- "...= -w ∈ W."
--- We show that `u` (which is `vlist 0`) is also in `W`.
-  have h_u_in_W : vlist 0 ∈ W := by
-    rw [h_u_eq_neg_w]
-    -- Since `vlist 1 ∈ W`, `- (vlist 1)` is also in `W`.
+-- We show that `u` is also in `W`.
+  have h_u_in_W : u ∈ W := by
+    rw [(h_u_eq_neg_w : u = -w)]
+    -- New goal: -w ∈ W
+    -- Since `w ∈ W`, `-w` is also in `W`.
     exact Submodule.neg_mem W h_w_mem
 
 -- "Thus u ∈ U ∩ W."
-  have h_u_in_intersect : vlist 0 ∈ (U : Set V) ∩ (W : Set V) := by
-    --rw [Submodule.mem_inf]
-    -- We have both `vlist 0 ∈ U` and `vlist 0 ∈ W`
+  have h_u_in_intersect : u ∈ (U : Set V) ∩ (W : Set V) := by
+    -- We have both `u ∈ U` and `u ∈ W`
     exact ⟨h_u_mem, h_u_in_W⟩
 
  -- "Hence u = 0"
-  have h_u_is_zero : vlist 0 = 0 := by
-    -- Our hypothesis `h_intersect_is_zero` means "any element in U ⊓ W is 0"
-    rw [Set.mem_singleton_iff.symm]
-    rw [← h_intersect_is_zero]
-    -- Apply this to `vlist 0`
+  have h_u_is_zero : u = 0 := by
+    rw [Set.mem_singleton_iff.symm] -- a ∈ {b} ↔ a = b
+    -- New goal: u ∈ {0}
+    rw [← h_intersect_is_zero]  -- ↑U ∩ ↑W = {0}
+    -- New goal: u ∈ ↑U ∩ ↑W
     exact h_u_in_intersect
 
-  -- "...which... implies that w = 0"
-  have h_w_is_zero : vlist 1 = 0 := by
-    -- We know `vlist 0 + vlist 1 = 0`
-    rw [h_u_is_zero] at h_sum_zero -- The equation becomes `0 + vlist 1 = 0`
-    simp at h_sum_zero              -- This simplifies to `vlist 1 = 0`
-    exact h_sum_zero
-
-  -- "completing the proof."
   -- Our goal is `∀ i, vlist i = 0`. We show this for `i = 0` and `i = 1`.
   intro i
   fin_cases i
-  · -- Case i = 0
-    exact h_u_is_zero
-  · -- Case i = 1
-    exact h_w_is_zero
+  · -- **Case i = 0: vlist 0 = u = 0**
+     -- "Hence u = 0"
+     exact h_u_is_zero
+  · -- **Case i = 1: vlist 1 = w = 0**
+    -- "...which by the equation above implies that w = 0"
+        calc w
+      = 0 + w := by rw [right_eq_add]
+    _ = u + w := by rw [h_u_is_zero]
+    _ = 0     := by rw [h_sum_zero]
+
+  -- "completing the proof."
