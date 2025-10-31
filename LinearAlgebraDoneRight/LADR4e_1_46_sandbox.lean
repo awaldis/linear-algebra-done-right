@@ -11,6 +11,64 @@ def V₂ (U W : Submodule 𝔽 V) : Fin 2 → Submodule 𝔽 V
   | 0 => U
   | 1 => W
 
+theorem if_direct_sum_then_2_subspace_intersect_only_zero :
+  IsDirectSum (V₂ (U := U) (W := W)) →
+  ((U : Set V) ∩ (W : Set V)) = ({0} : Set V) := by
+
+  -- Using the imported 1.45 theorem, we can replace the direct sum goal
+  -- a zero uniqueness goal since they are equivalent.
+  rw [direct_sum_iff_zero_unique]
+  -- New goal: ZeroUniqueness (V₂ U W) → ↑U ∩ ↑W = {0}
+
+  intro (h_zero_unique : ZeroUniqueness (V₂ U W))
+
+  -- To prove set equality, we show both inclusions
+  ext v
+  constructor
+
+  · -- First direction: v ∈ U ∩ W → v ∈ {0}
+    intro ⟨h_v_in_U, h_v_in_W⟩
+    -- Need to show v = 0
+    rw [Set.mem_singleton_iff]
+
+    -- Construct a vlist where vlist 0 = v and vlist 1 = -v
+    let vlist : Fin 2 → V := fun i => if i = 0 then v else -v
+
+    -- Show that this vlist has members in the right subspaces
+    have h_vlist_mem : ∀ i, vlist i ∈ V₂ U W i := by
+      intro i
+      fin_cases i
+      · -- Case i = 0: vlist 0 = v ∈ U
+        simp only [vlist, V₂]
+        exact h_v_in_U
+      · -- Case i = 1: vlist 1 = -v ∈ W
+        simp only [vlist, V₂]
+        exact Submodule.neg_mem W h_v_in_W
+
+    -- Show that this vlist sums to zero
+    have h_vlist_sum_zero : ∑ i, vlist i = 0 := by
+      rw [Fin.sum_univ_two]
+      simp only [vlist]
+      -- Goal: (if 0 = 0 then v else -v) + (if 1 = 0 then v else -v) = 0
+      simp
+
+    -- Apply h_zero_unique to conclude all components are zero
+    have h_all_zero := h_zero_unique vlist h_vlist_mem h_vlist_sum_zero
+
+    -- In particular, vlist 0 = v = 0
+    have h_v_zero : vlist 0 = 0 := h_all_zero 0
+    calc v = vlist 0 := by simp [vlist]
+         _ = 0       := h_v_zero
+
+  · -- Second direction: v ∈ {0} → v ∈ U ∩ W (trivial, since 0 is in both)
+    intro h_v_in_singleton
+    rw [Set.mem_singleton_iff] at h_v_in_singleton
+    rw [h_v_in_singleton]
+    constructor
+    · exact Submodule.zero_mem U
+    · exact Submodule.zero_mem W
+
+
 theorem if_2_subspace_intersect_only_zero_then_direct_sum :
   ((U : Set V) ∩ (W : Set V)) = ({0} : Set V) →
      IsDirectSum (V₂ (U := U) (W := W)) := by
