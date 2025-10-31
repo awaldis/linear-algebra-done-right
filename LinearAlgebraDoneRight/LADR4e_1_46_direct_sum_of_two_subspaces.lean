@@ -1,7 +1,13 @@
 import LinearAlgebraDoneRight.LADR4e_1_45_condition_for_a_direct_sum
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Tactic.FinCases
+/-!
+# Theorem 1.46 - Direct sum of two subspaces
 
+## From:
+Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
+edition, Undergraduate Texts in Mathematics, Springer, 2024
+-/
 variable {𝔽 : Type*} [Field 𝔽]
 variable {V : Type*} [AddCommGroup V] [Module 𝔽 V]
 variable (U W : Submodule 𝔽 V)
