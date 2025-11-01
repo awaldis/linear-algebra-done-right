@@ -3,7 +3,7 @@ import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Tactic.FinCases
 /-!
 # Theorem 1.46 - Direct sum of two subspaces
-
+Each direction of the iff is proved separately.
 ## From:
 Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
 edition, Undergraduate Texts in Mathematics, Springer, 2024
@@ -12,7 +12,10 @@ variable {𝔽 : Type*} [Field 𝔽]
 variable {V : Type*} [AddCommGroup V] [Module 𝔽 V]
 variable (U W : Submodule 𝔽 V)
 
-/-- Package two subspaces into a `Fin 2 → Submodule 𝔽 V` family. -/
+/-- Package two subspaces into a `Fin 2 → Submodule 𝔽 V` family.  This enables
+this file to use imported definitions that are generalized to work with lists of
+subspaces of **any** finite length.
+-/
 def V₂ (U W : Submodule 𝔽 V) : Fin 2 → Submodule 𝔽 V
   | 0 => U
   | 1 => W
@@ -28,14 +31,21 @@ theorem if_direct_sum_then_2_subspace_intersect_only_zero :
 
   intro (h_zero_unique : ZeroUniqueness (V₂ U W))
 
-  -- To prove set equality, we show both inclusions
+  -- Introduce an arbitrary element of both sets
+  -- Replaces the equality with a bidirectional membership statement (↔)
   ext v
-  constructor
+  -- New goal: v ∈ ↑U ∩ ↑W ↔ v ∈ {0}
 
+  -- To prove set equality, we show both inclusions
+  constructor
   · -- First direction: v ∈ U ∩ W → v ∈ {0}
+
     intro ⟨h_v_in_U, h_v_in_W⟩
-    -- Need to show v = 0
-    rw [Set.mem_singleton_iff]
+    -- New goal: v ∈ {0}
+
+    -- This means v = 0 by:
+    rw [Set.mem_singleton_iff] -- a ∈ {b} ↔ a = b
+    -- New goal: v = 0
 
     -- Construct a vlist where vlist 0 = v and vlist 1 = -v
     let vlist : Fin 2 → V := fun i => if i = 0 then v else -v
@@ -49,6 +59,7 @@ theorem if_direct_sum_then_2_subspace_intersect_only_zero :
         exact h_v_in_U
       · -- Case i = 1: vlist 1 = -v ∈ W
         simp only [vlist, V₂]
+        -- neg_mem proves (hx : x ∈ p) : -x ∈ p
         exact Submodule.neg_mem W h_v_in_W
 
     -- Show that this vlist sums to zero
