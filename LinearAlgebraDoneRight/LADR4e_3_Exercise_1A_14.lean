@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Field.Basic
 import Mathlib.Data.Fin.Basic
+import Mathlib.Algebra.Group.Action.Defs
 /-!
 # Exercise 1A.14 - distributivity of scalar multiplication
 # with respect to vector addition in 𝔽ⁿ
@@ -15,19 +16,21 @@ variable {α : 𝔽} -- use α instead of λ since λ has special meaning in Lea
 
 theorem dist_of_smul_wrt_vec_add : α • (x + y) = α • x + α • y  := by
 calc α • (x + y)
-      -- Convert vector x + y to functional form.
-    = α • fun i=>(x + y) i := by rfl
+      -- Convert vectors x and y to functional form.
+    = α • (fun i=>x i + y i)  := by rw [Pi.add_def]
 
-      -- Move the α inside the function, this is equivalent to
-      -- multiplying each point in the vector individually.
-      -- Since ((x + y) i) ∈ 𝔽, we can use field multiplication.
-  _ = fun i=> α * (x + y) i := by rfl
+      -- Move the scalar inside the function.
+  _ = fun i=> α • (x i + y i) := by rw [Pi.smul_def]
 
-      -- Index x and y separately.
-  _ = fun i=> α * (x i + y i) := by rfl
+      -- Convert to field multiplication.
+  _ = fun i=> α * (x i + y i) := by ext i; rw [smul_eq_mul]
 
-      -- Use field distribution
+      -- Now we can use regular field distribution.
   _ = fun i=> (α * x i) + (α * y i) := by simp [left_distrib]
 
-      -- Reduce x and y back to a vectors.
-  _ = α • x + α • y := by rfl
+      -- Convert back to scalar multiplication.
+  _ = fun i=> (α • x i) + (α • y i) := by ext i; rw [smul_eq_mul, smul_eq_mul]
+  _ = fun i=> ((α • x) i) + ((α • y) i) := by ext i; rw [Pi.smul_apply, Pi.smul_apply]
+
+      -- Convert x and y back to vectors without function extension.
+  _ = α • x + α • y := by rw [← Pi.add_def]
