@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Lean 4 Kernel Primitive Rules</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        margin: 2.5rem auto;
+        padding: 0 1.5rem;
+        max-width: 900px;
+        line-height: 1.6;
+      }
+      header {
+        border-bottom: 3px solid #5b6dcd;
+        margin-bottom: 2rem;
+        padding-bottom: 0.5rem;
+      }
+      h1, h2, h3 {
+        color: #293155;
+        margin-top: 2rem;
+      }
+      h2::before {
+        content: "§ ";
+        color: #5b6dcd;
+      }
+      code {
+        background: rgba(91, 109, 205, 0.12);
+        padding: 0.1rem 0.35rem;
+        border-radius: 0.25rem;
+        font-size: 0.9em;
+      }
+      ul {
+        margin: 0 0 1rem 1.25rem;
+      }
+      .card {
+        border: 1px solid rgba(41, 49, 85, 0.15);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        margin: 1.5rem 0;
+        background: rgba(91, 109, 205, 0.05);
+      }
+      .columns {
+        display: grid;
+        gap: 1.25rem;
+      }
+      @media (min-width: 720px) {
+        .columns {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      footer {
+        margin-top: 3rem;
+        font-size: 0.85rem;
+        color: #47506d;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Lean 4 Kernel Primitive Rules</h1>
+      <p>
+        A concise field guide to the small collection of inference and computation rules
+        the Lean 4 kernel trusts. Every elaborated proof term reduces to combinations
+        of these primitives.
+      </p>
+    </header>
+
+    <section class="card">
+      <h2>Core Examples</h2>
+      <p>
+        The simplest “one-step” inhabitants you saw in <code>TinyProofs.lean</code>
+        come directly from these primitives:
+      </p>
+      <ul>
+        <li><strong>Proof constructors</strong>: <code>True.intro</code> introduces the inhabitant of <code>True</code>.</li>
+        <li><strong>Definitional equality</strong>: <code>rfl</code> (aka <code>Eq.refl</code>) certifies that a term equals itself.</li>
+        <li><strong>Tuple projections</strong>: <code>And.left</code>/<code>And.right</code> destruct conjunction proofs.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Function Types &amp; Computation</h2>
+      <div class="columns">
+        <div class="card">
+          <h3>Formation &amp; Introduction</h3>
+          <ul>
+            <li><code>Pi</code> (dependent <code>∀</code>) and arrow types are primitive.</li>
+            <li>Lambdas (<code>fun x =&gt; t</code>) are introduction rules; the kernel checks binder types.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Elimination &amp; Reduction</h3>
+          <ul>
+            <li>Application is primitive; β-reduction simplifies <code>(fun x =&gt; t) u</code>.</li>
+            <li><strong>δ-reduction</strong> (unfolding definitions) happens for reducible constants.</li>
+            <li><strong>ι-reduction</strong> handles pattern-matching/recursor computation clauses.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Inductive Families</h2>
+      <p>
+        Each inductive type generates primitive constructors plus a recursor
+        capturing its elimination principle. Examples:
+      </p>
+      <ul>
+        <li><code>False.elim</code>, <code>And.intro</code>, <code>Or.inl</code>/<code>Or.inr</code>.</li>
+        <li><code>Nat.zero</code>, <code>Nat.succ</code>, and the recursor <code>Nat.rec</code>.</li>
+        <li>List constructors and recursors (<code>List.nil</code>, <code>List.cons</code>, <code>List.rec</code>).</li>
+      </ul>
+      <p>
+        Their computation rules specify how recursors act on each constructor, enabling
+        structural recursion and induction proofs.
+      </p>
+    </section>
+
+    <section>
+      <h2>Dependent Pairs &amp; Subtypes</h2>
+      <div class="card">
+        <ul>
+          <li>Introduction: <code>⟨a, b⟩</code> constructs a witness with its proof.</li>
+          <li>Elimination: projections <code>.1</code> and <code>.2</code> are primitive.</li>
+          <li>Computation: projecting immediately after constructing is definitionally equal to components.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Equality &amp; Transport</h2>
+      <ul>
+        <li><code>Eq.refl</code> gives reflexivity; <code>rfl</code> is notation.</li>
+        <li><code>Eq.rec</code> (a.k.a. substitution) transports terms across equalities and underlies rewriting.</li>
+        <li>Congruence lemmas boil down to <code>Eq.rec</code> plus β-reduction.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Sort Hierarchy &amp; Cumulativity</h2>
+      <p>
+        Universe levels are handled through primitive rules for <code>Sort u</code>, <code>Prop</code>,
+        cumulativity (<code>Prop</code> embeds into higher <code>Sort</code>s), and transports like
+        <code>ULift</code> / <code>PLift</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Let-Bindings &amp; Pattern Matching</h2>
+      <p>
+        <code>let</code> introduces definitional equalities that β-reduce when unfolded.
+        Pattern matching compiles to the inductive recursors above; their soundness
+        therefore relies on the same primitive computation rules.
+      </p>
+    </section>
+
+    <footer>
+      Crafted for low-level Lean 4 exploration &mdash; combine these primitives to
+      explain any elaborated proof the kernel accepts.
+    </footer>
+  </body>
+</html>
