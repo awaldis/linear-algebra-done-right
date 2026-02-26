@@ -9,6 +9,8 @@ import Mathlib.Tactic  -- Needed for "ring"
 Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
 edition, Undergraduate Texts in Mathematics, Springer, 2024
 -/
+-- 𝔽 is a field of characteristic 0 (e.g., ℚ, ℝ, ℂ).
+-- This excludes finite fields like GF(2), GF(3), GF(p) and their extensions.
 variable {𝔽 : Type*} [Field 𝔽]
 def Set_1a : Set (Fin 3 → 𝔽) := {v | (v 0) + (2 * v 1) + (3 * v 2) = 0}
 
@@ -55,3 +57,45 @@ theorem axler_1C_1a : ∃ W : Submodule 𝔽 (Fin 3 → 𝔽), (W : Set (Fin 3 �
         _ = 0                                   := by ring
   }
   rfl
+
+--------------------------------------------------------------------------------
+section CharZeroExercises
+-- For these exercises we need to make 𝔽 a field of characteristic 0 (e.g., ℚ, ℝ, ℂ).
+-- This excludes finite fields like GF(2), GF(3), GF(p) and their extensions.
+variable [CharZero 𝔽]
+
+def Set_1b : Set (Fin 3 → 𝔽) := {v | (v 0) + (2 * v 1) + (3 * v 2) = 4}
+
+theorem axler_1C_1b :
+    ¬∃ S : Submodule 𝔽 (Fin 3 → 𝔽), (S : Set (Fin 3 → 𝔽)) = Set_1b := by
+
+  -- "¬" makes the goal False
+  rintro ⟨S, hS⟩
+
+  -- "zero_mem" proves that the zero vector must be in any submodule,
+  -- therefore it's in this one as well.
+  have h_0vec_in_set : (0 : Fin 3 → 𝔽) ∈ (S : Set _) := S.zero_mem
+
+  -- Replace the symbol "Set_1b" with it's definition.
+  unfold Set_1b at *
+
+  --Replace (h_0vec_in_set : 0 ∈ ↑S) with the details of the definition of set S.
+  rw [hS, Set.mem_setOf_eq] at h_0vec_in_set
+  -- Now (h_0vec_in_set : (0 0) + (2 * 0 1) + (3 * 0 2) = 4)
+
+  -- Apply the zero function (0 i = 0)
+  simp only [Pi.zero_apply] at h_0vec_in_set
+  -- Now (h_0vec_in_set : 0 + (2 * 0) + (3 * 0) = 4)
+
+  -- a * 0 = 0
+  simp only [mul_zero] at h_0vec_in_set
+  -- Now (h_0vec_in_set : 0 + 0 + 0 = 4)
+
+  -- a + 0 = a
+  simp only [add_zero] at h_0vec_in_set
+  -- Now (h_0vec_in_set : 0 = 4)
+
+  -- "norm_num" can prove that "0 = 4" is False in characteristic 0
+  norm_num at h_0vec_in_set
+
+end CharZeroExercises
