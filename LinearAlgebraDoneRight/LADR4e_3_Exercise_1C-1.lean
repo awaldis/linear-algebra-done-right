@@ -99,3 +99,37 @@ theorem axler_1C_1b :
   norm_num at h_0vec_in_set
 
 end CharZeroExercises
+
+def Set_1c : Set (Fin 3 → 𝔽) := {x | (x 0) * (x 1) * (x 2) = 0}
+
+theorem axler_1C_1c :
+    ¬∃ S : Submodule 𝔽 (Fin 3 → 𝔽), (S : Set (Fin 3 → 𝔽)) = Set_1c := by
+      -- "¬" makes the goal False
+  rintro ⟨S, hS⟩
+
+  -- Replace the symbol "Set_1c" with it's definition.
+  unfold Set_1c at *
+
+  -- u = (1,0,1) ∈ S since 1·0·1 = 0
+  --  have hu : u ∈ (S : Set _) := by
+  have hu : ![1, 0, 1] ∈ (S : Set (Fin 3 → 𝔽)) := by
+    rw [hS, Set.mem_setOf_eq]
+    simp [Matrix.cons_val_zero, Matrix.cons_val_one]
+
+  have hw : ![0, 1, 0] ∈ (S : Set (Fin 3 → 𝔽)) := by
+    rw [hS, Set.mem_setOf_eq]
+    simp [Matrix.cons_val_zero, Matrix.cons_val_one]
+
+  -- u + w must be in W (closure under addition)
+  have hsum := S.add_mem hu hw
+
+  have heq : ![1, 0, 1] + ![0, 1, 0] = (![1, 1, 1] : Fin 3 → 𝔽) := by
+    ext i; fin_cases i <;> simp
+  rw [heq] at hsum
+  have h_1_1_1_in_S := hsum; clear hsum
+
+  have h_1_1_1_not_in_S : ¬![1, 1, 1] ∈ (S : Set (Fin 3 → 𝔽)) := by
+    rw [hS, Set.mem_setOf_eq]
+    simp [Matrix.cons_val_zero, Matrix.cons_val_one]
+
+  exact absurd h_1_1_1_in_S h_1_1_1_not_in_S
