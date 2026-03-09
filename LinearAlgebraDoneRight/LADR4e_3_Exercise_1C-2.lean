@@ -63,3 +63,41 @@ theorem subspace_iff_b_eq_zero (b : 𝔽) :
         _ = 5 * (c * v 3) + 0 := by ring
     }
     rfl
+
+/-!
+Exercise 1C.2 (b)
+
+The set of continuous real-valued functions on the interval [0,1]
+is a subspace of ℝ^[0,1] (i.e. of all functions [0,1] → ℝ).
+-/
+-- Define the interval [0, 1] as a subtype to serve as our domain
+abbrev I := Set.Icc (0 : ℝ) (1 : ℝ)
+
+-- Define the set of continuous functions from I to ℝ
+def set_2b : Set (I → ℝ) := { f | Continuous f }
+
+theorem continuous_functions_is_subspace :
+  ∃ (S : Submodule ℝ (I → ℝ)), (S : Set (I → ℝ)) = set_2b := by
+  use {
+    carrier := set_2b
+    zero_mem' := by
+      unfold set_2b
+      simp only [Set.mem_setOf_eq]
+      -- The zero function is identically 0, which is continuous
+      exact continuous_zero
+    add_mem' := by
+      -- Let f and g be continuous functions
+      intro f g hf hg
+      unfold set_2b at *
+      simp only [Set.mem_setOf_eq] at *
+      -- The sum of two continuous functions is continuous
+      exact Continuous.add hf hg
+    smul_mem' := by
+      -- Let c be a scalar and f be a continuous function
+      intro c f hf
+      unfold set_2b at *
+      simp only [Set.mem_setOf_eq] at *
+      -- Scalar multiplication of a continuous function is continuous
+      exact Continuous.const_smul hf c
+  }
+  rfl
