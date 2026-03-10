@@ -101,3 +101,37 @@ theorem continuous_functions_is_subspace :
       exact Continuous.const_smul hf c
   }
   rfl
+
+/-!
+Exercise 1C.2 (c)
+
+The set of differentiable real-valued functions on ℝ is a subspace of ℝ^ℝ.
+-/
+-- Define the set of differentiable functions from ℝ to ℝ
+def set_2c : Set (ℝ → ℝ) := { f | Differentiable ℝ f }
+
+theorem differentiable_functions_is_subspace :
+  ∃ (S : Submodule ℝ (ℝ → ℝ)), (S : Set (ℝ → ℝ)) = set_2c := by
+  use {
+    carrier := set_2c
+    zero_mem' := by
+      unfold set_2c
+      simp only [Set.mem_setOf_eq]
+      -- The zero function is identically the constant 0, which is differentiable
+      exact differentiable_const 0
+    add_mem' := by
+      -- Let f and g be differentiable functions
+      intro f g hf hg
+      unfold set_2c at *
+      simp only [Set.mem_setOf_eq] at *
+      -- The sum of two differentiable functions is differentiable
+      exact Differentiable.add hf hg
+    smul_mem' := by
+      -- Let c be a scalar and f be a differentiable function
+      intro c f hf
+      unfold set_2c at *
+      simp only [Set.mem_setOf_eq] at *
+      -- Scalar multiplication of a differentiable function is differentiable
+      exact Differentiable.const_smul hf c
+  }
+  rfl
