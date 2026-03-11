@@ -135,3 +135,96 @@ theorem differentiable_functions_is_subspace :
       exact Differentiable.const_smul hf c
   }
   rfl
+
+/-!
+Exercise 1C.2 (d)
+
+The set of differentiable real-valued functions 𝑓 on the interval (0, 3) such
+that 𝑓′(2) = 𝑏 is a subspace of ℝ^(0,3) if and only if 𝑏 = 0.
+-/
+
+def set_2d (b : ℝ) : Set (ℝ → ℝ) :=
+  { f | DifferentiableOn ℝ f (Set.Ioo 0 3) ∧ deriv f 2 = b }
+
+theorem subspace_iff_deriv_eq_zero (b : ℝ) :
+  (∃ (S : Submodule ℝ (ℝ → ℝ)), (S : Set (ℝ → ℝ)) = set_2d b) ↔ b = 0 := by
+  constructor
+  · -- Forward direction - If S is a subspace then b = 0
+    intro ⟨S, hS⟩
+    unfold set_2d at *
+    -- Use the fact that the zero vector MUST be in the set to show that
+    -- b MUST be zero.
+    have h_0vec_in_set : (0 : ℝ → ℝ) ∈ (S : Set _) := S.zero_mem
+    rw [hS, Set.mem_setOf_eq] at h_0vec_in_set
+    rcases h_0vec_in_set with ⟨h_is_diffable_on_int, h_deriv_0_is_b⟩
+    have h_deriv_zero : deriv (0 : ℝ → ℝ) 2 = 0 := deriv_const 2 (0 : ℝ)
+    rw [h_deriv_0_is_b] at h_deriv_zero
+    exact h_deriv_zero
+
+  · -- Reverse direction - If b = 0 then S is a subspace.
+    intro h_b_eq_zero
+    use {
+    carrier := set_2d b
+    zero_mem' := by
+      unfold set_2d at *
+      simp only [Set.mem_setOf_eq] at *
+      constructor
+      · -- Goal: DifferentiableOn ℝ 0 (Set.Ioo 0 3)
+        exact differentiableOn_const 0
+      · -- Goal: deriv 0 2 = b
+        have h_deriv_zero : deriv (0 : ℝ → ℝ) 2 = 0 := deriv_const 2 (0 : ℝ)
+        rw [h_b_eq_zero, h_deriv_zero]
+
+    add_mem' := by
+      -- Let f and g be differentiable functions
+      intro f g hf hg
+      unfold set_2d at *
+      simp only [Set.mem_setOf_eq] at *
+      rcases hf with ⟨h_f_is_diffable_on_int, h_f_deriv_at2_is_b⟩
+      rcases hg with ⟨h_g_is_diffable_on_int, h_g_deriv_at2_is_b⟩
+
+      constructor
+      · -- Goal: DifferentiableOn ℝ (f + g) (Set.Ioo 0 3)
+        exact DifferentiableOn.add h_f_is_diffable_on_int
+                                   h_g_is_diffable_on_int
+      · -- Goal: deriv (f + g) 2 = b
+        have h_2_mem : (2 : ℝ) ∈ Set.Ioo (0 : ℝ) 3 := by norm_num
+
+        -- Convert differentiable "On" to "At"
+        have h_f_diffable_at_2 : DifferentiableAt ℝ f 2 :=
+          h_f_is_diffable_on_int.differentiableAt (IsOpen.mem_nhds isOpen_Ioo h_2_mem )
+
+        have h_g_diffable_at_2 : DifferentiableAt ℝ g 2 :=
+          h_g_is_diffable_on_int.differentiableAt (IsOpen.mem_nhds isOpen_Ioo h_2_mem )
+
+        rw [deriv_add h_f_diffable_at_2
+                      h_g_diffable_at_2,
+                      h_f_deriv_at2_is_b,
+                      h_g_deriv_at2_is_b ]
+        -- New Goal: b + b = b
+        subst h_b_eq_zero
+        ring
+
+    smul_mem' := by
+      -- Let c be a scalar and f be a differentiable function
+      intro c f hf
+      unfold set_2d at *
+      simp only [Set.mem_setOf_eq] at *
+      rcases hf with ⟨h_f_is_diffable_on_int, h_f_deriv_at2_is_b⟩
+
+      constructor
+      · -- DifferentiableOn ℝ (c • f) (Set.Ioo 0 3)
+        exact DifferentiableOn.const_smul h_f_is_diffable_on_int c
+      · -- Goal: deriv (c • f) 2 = b
+        have h_2_mem : (2 : ℝ) ∈ Set.Ioo (0 : ℝ) 3 := by norm_num
+
+        -- Convert differentiable "On" to "At"
+        have h_f_diffable_at_2 : DifferentiableAt ℝ f 2 :=
+          h_f_is_diffable_on_int.differentiableAt (IsOpen.mem_nhds isOpen_Ioo h_2_mem )
+
+        rw [deriv_const_smul c h_f_diffable_at_2, h_f_deriv_at2_is_b ]
+        -- New goal: c • b = b
+        subst h_b_eq_zero
+        simp
+    }
+    rfl
