@@ -228,3 +228,46 @@ theorem subspace_iff_deriv_eq_zero (b : ℝ) :
         simp
     }
     rfl
+
+/-!
+Exercise 1C.2 (e)
+
+The set of all sequences of complex numbers with limit 0 is a subspace of ℂ^∞.
+-/
+def set_2e : Set (ℕ → ℂ ) := {s | Filter.Tendsto s Filter.atTop (nhds 0)}
+
+theorem complex_sequence_lim0_is_subspace :
+  ∃ (S : Submodule ℂ (ℕ → ℂ)), (S : Set (ℕ → ℂ)) = set_2e := by
+  use {
+    carrier := set_2e
+    zero_mem' := by
+      unfold set_2e
+      simp only [Set.mem_setOf_eq]
+      -- A constant sequence of zeros tends to zero.
+      exact tendsto_const_nhds
+
+    add_mem' := by
+      -- Let s1 and s2 be arbitrary sequences tending to zero.
+      intro s1 s2 h_s1_in_set h_s2_in_set
+      unfold set_2e at *
+      simp only [Set.mem_setOf_eq] at *
+      -- The sum of an two sequences tending to zero is (0 + 0)
+      have h_sum := Filter.Tendsto.add h_s1_in_set h_s2_in_set
+      -- Reduce (0 + 0) to 0
+      simp only [add_zero] at h_sum
+      -- Now h_sum exactly matches our goal.
+      exact h_sum
+
+    smul_mem' := by
+      -- Let c be a scalar and s be any sequence in the set.
+      intro c s h_s_in_set
+      unfold set_2e at *
+      simp only [Set.mem_setOf_eq] at *
+      -- Multiplying a sequence tending to zero by a scalar yields (c • 0)
+      have h_smul := Filter.Tendsto.const_smul h_s_in_set c
+      -- Reduce (c • 0) to 0
+      simp only [smul_zero] at h_smul
+      -- Now h_smul exactly matches our goal.
+      exact h_smul
+  }
+  rfl
