@@ -15,44 +15,46 @@ edition, Undergraduate Texts in Mathematics, Springer, 2024
 -/
 
 -------------------------------------------------------------------------------
--- Define a subset of ℝ² that provides a counterexample - namely, all the real
--- numbers that are also integers.
+-- Our "U" will be a subset of ℝ² that provides a counterexample - namely, all
+-- the realnumbers that are also integers.
+
+-- Specifically, when every vector in ℝ² (Fin 2 → ℝ) is applied to every index
+-- in Fin 2, the vector is considered a member of the subset only if both real
+-- numbers produced are equivalent to some integer n coerced to a real number.
 -------------------------------------------------------------------------------
-def intPairsSubset : Set (Fin 2 → ℝ) := {v | ∀ i, ∃ n : ℤ, v i = ↑n }
+def intPairsSubset : Set (Fin 2 → ℝ) := {v | ∀ i, ∃ (n:ℤ), v i = ↑n }
 
 -----------------------------------------------------------------------------
--- Closed under addition.
--- If each component of v and w is an integer, then each component of
--- v + w is also an integer (sum of integers is an integer).
+-- Prove that the subset really is closed under addition.
 -----------------------------------------------------------------------------
-theorem intPairs_add_closed {v w : Fin 2 → ℝ}
-                                  (h_v_in_subset : v ∈ intPairsSubset)
-                                  (h_w_in_subset : w ∈ intPairsSubset) :
-                                     v + w ∈ intPairsSubset := by
+theorem intPairs_add_closed {vec1 vec2 : Fin 2 → ℝ}
+                             (h_vec1_in_subset : vec1 ∈ intPairsSubset)
+                             (h_vec2_in_subset : vec2 ∈ intPairsSubset) :
+                              vec1 + vec2 ∈ intPairsSubset := by
   unfold intPairsSubset at *
   simp only [Set.mem_setOf_eq] at *
 
-  -- Move the universally quantified i from the goal to the context.
-  intro i
+  -- Goal: ∀ (i : Fin 2), ∃ n, (vec1 + vec2) i = ↑n
 
-  -- Specialize the universal in h_v_in_subset
-  have h_exist_n_st_v_i_eq_n : ∃ (n:ℤ), v i = ↑n := h_v_in_subset i
+  -- Move index from goal to context.
+  intro (i:Fin 2)
 
-  -- Unpack into witness n and proof that v i = ↑n
-  rcases h_exist_n_st_v_i_eq_n with ⟨n, h_v_i_eq_n⟩
+  -- Unpack input hypotheses.
+  obtain ⟨int1, h_vec1_i_eq_int1⟩ := h_vec1_in_subset i
+  obtain ⟨int2, h_vec2_i_eq_int2⟩ := h_vec2_in_subset i
 
-  -- Same idea for w and m but use obtain shortcut.
-  obtain ⟨m, h_w_i_eq_m⟩ := h_w_in_subset i
-
-  use n + m
+  use int1 + int2
   simp only [Pi.add_apply]
-  simp only [h_v_i_eq_n, h_w_i_eq_m]
-  have h_cast : (↑((n + m): ℤ) : ℝ) = (↑(n:ℤ):ℝ) + (↑(m:ℤ):ℝ) :=
-                                                            Int.cast_add n m
+  simp only [h_vec1_i_eq_int1, h_vec2_i_eq_int2]
+
+  -- Prove the cast can be done either before or after addition.
+  have h_cast : (↑((int1 + int2): ℤ) : ℝ) = (↑(int1:ℤ):ℝ) + (↑(int2:ℤ):ℝ) :=
+                                                        Int.cast_add int1 int2
   rw [h_cast]
 
 -----------------------------------------------------------------------------
--- Closed under additive inverse.
+-- Prove that the additive inverse of every element of "intPairsSubset" is
+-- also in "intPairsSubset".
 -----------------------------------------------------------------------------
 -- TBD
 
