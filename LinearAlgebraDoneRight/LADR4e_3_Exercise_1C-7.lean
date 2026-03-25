@@ -82,8 +82,62 @@ theorem intPairs_add_inv_exists {vec : Fin 2 → ℝ}
   have h_cast : (↑(-(int: ℤ)) : ℝ) = -(↑(int:ℤ):ℝ) := Int.cast_neg int
   rw [h_cast]
 
+-----------------------------------------------------------------------------
+-- Show that if we assume the the set is a subspace then scalar multiplication
+-- can result in an element that is NOT in the set.
+-----------------------------------------------------------------------------
+theorem intPairs_not_subspace :
+  ¬ ∃ (S : Submodule ℝ  (Fin 2 → ℝ)), (S :Set (Fin 2 → ℝ)) =
+                                                 intPairsSubset := by
+  intro ⟨S, hS⟩
 
------------------------------------------------------------------------------
--- NOT closed under scalar multiplication.
------------------------------------------------------------------------------
--- TBD
+  -- Prove (-0.5,0) IS NOT in the subspace set.
+  have h_half_0_not_in_set : ¬![0.5, 0] ∈ intPairsSubset := by
+    unfold intPairsSubset; simp only [Set.mem_setOf_eq]
+    intro h_there_exists_an_n
+    specialize h_there_exists_an_n 0
+    obtain ⟨int, h_half_eq_int⟩ := h_there_exists_an_n
+    simp [Matrix.cons_val_zero] at h_half_eq_int
+
+    -- Show that ↑int (which is equal to 0.5) is greater than zero and less than
+    -- one.  This is fine in the real numbers.  Then cast the inequalities to
+    -- integers to get the false implication that there is an integer greater
+    -- than zero and less than one.  'omega' will detect this and flag it as
+    -- false.
+    have h_half_gt_zero_in_reals : (0:ℝ) < ↑int   := by linarith
+    have h_half_lt_one_in_reals : (↑int : ℝ) < 1 := by linarith
+
+    have h_half_gt_zero_in_ints : (0 : ℤ) < int := by
+                                        exact_mod_cast h_half_gt_zero_in_reals
+    have h_half_lt_one_in_ints : int < (1 : ℤ) := by
+                                        exact_mod_cast h_half_lt_one_in_reals
+    omega
+
+  -- Prove (-0.5,0) IS in the subspace set.
+  have h_half_0_in_set : ![0.5, 0] ∈ intPairsSubset := by
+
+    have h_1_0_in_subspace : ![1, 0] ∈ S := by
+      have : ![1, 0] ∈ intPairsSubset := by
+        unfold intPairsSubset; simp only [Set.mem_setOf_eq]
+        intro i
+        fin_cases i
+        ·  use 1; norm_num
+        ·  use 0; norm_num
+      rw [← hS] at this; rwa [SetLike.mem_coe] at this
+
+    have h_half_0_in_subspace : ![0.5, 0] ∈ S := by
+
+      have h_smul_is_member : (0.5:ℝ) • ![1, 0] ∈ S :=
+                                               S.smul_mem 0.5 h_1_0_in_subspace
+
+      have h_smul_eq_half_0 : (0.5:ℝ) • ![(1:ℝ), 0] = ![0.5, 0] := by
+        ext i
+        fin_cases i <;> simp
+
+      rwa [h_smul_eq_half_0] at h_smul_is_member
+
+    rw [← hS]; rw [SetLike.mem_coe]
+    exact h_half_0_in_subspace
+
+  -- Assuming S is a subspace leads to a contradiction.
+  exact absurd h_half_0_in_set h_half_0_not_in_set
