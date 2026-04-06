@@ -1,5 +1,8 @@
 import Mathlib.Algebra.Module.Submodule.Basic
 
+set_option linter.style.emptyLine false
+set_option linter.style.whitespace false
+
 variable {𝔽 : Type*} [Field 𝔽]
 variable {V : Type*} [AddCommGroup V] [Module 𝔽 V]
 
