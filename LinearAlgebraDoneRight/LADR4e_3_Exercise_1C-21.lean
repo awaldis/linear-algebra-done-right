@@ -6,7 +6,7 @@ set_option linter.style.emptyLine false
 set_option linter.style.whitespace false
 
 /-!
-# Suppose 𝑈 = {(𝑥, 𝑦, 𝑥 + 𝑦, 𝑥 − 𝑦, 2𝑥) ∈ 𝐅⁵ ∶ 𝑥, 𝑦 ∈ 𝐅}.
+# Exercise 1C.21 - Suppose 𝑈 = {(𝑥, 𝑦, 𝑥 + 𝑦, 𝑥 − 𝑦, 2𝑥) ∈ 𝐅⁵ ∶ 𝑥, 𝑦 ∈ 𝐅}.
 # Find a subspace 𝑊 of 𝐅⁵ such that 𝐅⁵ = 𝑈 ⊕ 𝑊.
 ## From:
 Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
