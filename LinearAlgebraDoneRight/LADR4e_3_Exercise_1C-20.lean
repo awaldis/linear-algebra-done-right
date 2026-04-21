@@ -65,7 +65,7 @@ def W : Submodule 𝔽 (Fin 4 → 𝔽) where
     simp only [Pi.zero_apply]
     tauto
 
-  -- Show that if a and b are both in U, then a + b is in U.
+  -- Show that if a and b are both in W, then a + b is in W.
   -- Specifically, (a + b) 0 = 0 and
   --               (a + b) 2 = 0
   add_mem' := by
@@ -80,16 +80,16 @@ def W : Submodule 𝔽 (Fin 4 → 𝔽) where
     · -- Goal: a 2 + b 2 = 0
       rw [h_a2_eq_0, h_b2_eq_0, zero_add]
 
-  -- Show that if u is in U and c ∈ 𝔽, then c • u is in U.
+  -- Show that if w is in W and c ∈ 𝔽, then c • w is in W.
   smul_mem' := by
-    intro c u h_u_in_set
+    intro c w h_w_in_set
     simp only [Set.mem_setOf_eq, Pi.smul_apply, smul_eq_mul] at *
-    obtain ⟨h_u0_eq_0, h_u2_eq_0⟩ := h_u_in_set
+    obtain ⟨h_w0_eq_0, h_w2_eq_0⟩ := h_w_in_set
     constructor
-    · -- Goal: c * u 0 = 0
-      rw [h_u0_eq_0, mul_zero]
-    · -- Goal: c * u 2 = 0
-      rw [h_u2_eq_0, mul_zero]
+    · -- Goal: c * w 0 = 0
+      rw [h_w0_eq_0, mul_zero]
+    · -- Goal: c * w 2 = 0
+      rw [h_w2_eq_0, mul_zero]
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Show that subspaces U and W intersect only at zero.  Therefore, their sum
