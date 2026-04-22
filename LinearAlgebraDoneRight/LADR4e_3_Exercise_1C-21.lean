@@ -12,8 +12,8 @@ set_option linter.style.whitespace false
 Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
 edition, Undergraduate Texts in Mathematics, Springer, 2024
 
-The code will show that W = {(0, x, 0, y) : x, y ∈ 𝔽} is a subspace that meets
-criteria.
+The code will show that W = {(0, 0, x, y, z) : x, y, z ∈ 𝔽} is a subspace that
+meets the criteria.
 -/
 variable {𝔽 : Type*} [Field 𝔽]
 

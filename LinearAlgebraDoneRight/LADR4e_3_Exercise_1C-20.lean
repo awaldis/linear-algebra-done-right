@@ -12,7 +12,7 @@ Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
 edition, Undergraduate Texts in Mathematics, Springer, 2024
 
 The code will show that W = {(0, x, 0, y) : x, y ∈ 𝔽} is a subspace that meets
-criteria.
+the criteria.
 -/
 variable {𝔽 : Type*} [Field 𝔽]
 
