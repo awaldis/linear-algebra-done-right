@@ -57,3 +57,19 @@ def spanSubspace {m : ℕ} (vector_list : Fin m → V ) : Submodule 𝔽 V where
         = c • ∑ k, a_list k • vector_list k   := by rw [h_v_eq_lincomb]
       _ = ∑ k, c • a_list k • vector_list k   := by rw [Finset.smul_sum]
       _ = ∑ k, (c • a_list) k • vector_list k := by simp [mul_smul]
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Show that each vector in the list is contained in the span of the list.
+-- ═══════════════════════════════════════════════════════════════════════════
+theorem each_vector_in_span {m : ℕ} (vector_list : Fin m → V ) :
+    ∀ k, vector_list k ∈ spanSubspace (𝔽 := 𝔽) vector_list := by
+
+  intro k
+  unfold spanSubspace
+  -- Use a function that behaves like a vector where the kth coordinate
+  -- is 1 and the rest are 0. This is the "aₖ=1 and all other a's are zero"
+  -- from the book.
+  use fun i => if i = k then 1 else 0
+  simp only
+  -- Goal: vector_list k = ∑ x, (if x = k then 1 else 0) • vector_list x
+  simp [Finset.sum_ite_eq']
