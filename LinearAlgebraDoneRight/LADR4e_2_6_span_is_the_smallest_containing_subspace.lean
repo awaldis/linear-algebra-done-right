@@ -73,3 +73,26 @@ theorem each_vector_in_span {m : ℕ} (vector_list : Fin m → V ) :
   simp only
   -- Goal: vector_list k = ∑ x, (if x = k then 1 else 0) • vector_list x
   simp [Finset.sum_ite_eq']
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Show that spanSubspace is the smallest subspace of V that contain all the
+-- vectors in the list.
+-- ═══════════════════════════════════════════════════════════════════════════
+theorem spanSubspace_is_smallest {m : ℕ} (vector_list : Fin m → V )
+                                         (W : Submodule 𝔽 V)
+  (h_W_contains_every_vₖ : ∀ k, vector_list k ∈ W) :
+  ((spanSubspace (𝔽 := 𝔽) vector_list) ≤ W) := by
+
+  intro v h_v_in_spanSubspace
+
+  unfold spanSubspace at *
+
+  obtain ⟨ a_list, h_v_eq_lincomb ⟩ := h_v_in_spanSubspace
+
+  rw[h_v_eq_lincomb]
+
+  -- If every vector in a list is in a subspace then their sum is also in the
+  -- subspace.
+  apply Submodule.sum_mem
+  intro c _
+  exact Submodule.smul_mem W (a_list c) (h_W_contains_every_vₖ c)
