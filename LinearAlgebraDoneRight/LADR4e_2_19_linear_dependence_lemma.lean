@@ -2,6 +2,7 @@ import Mathlib.Algebra.Module.Basic
 import Mathlib.Algebra.Module.Submodule.Basic
 import Mathlib.Data.Fin.Basic
 import Mathlib.Algebra.BigOperators.GroupWithZero.Action
+import Mathlib.Algebra.BigOperators.Fin
 
 set_option linter.style.emptyLine false
 set_option linter.style.whitespace false
@@ -65,7 +66,7 @@ def spanSubspace {m : ℕ} (vector_list : Fin m → V ) : Submodule 𝔽 V where
 def linearly_independent {m : ℕ} (vector_list : Fin m → V ) : Prop :=
    ∀ (a : Fin m → 𝔽), (∑ k, a k • vector_list k = 0 ) → a = 0
 
-def linearly_dependent {m : ℕ} (vector_list : Fin m → V ) : Prop :=
+def LinearlyDependent {m : ℕ} (vector_list : Fin m → V ) : Prop :=
    ∃ (a : Fin m → 𝔽), (a ≠ 0) ∧ (∑ k, a k • vector_list k = 0 )
 
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -73,10 +74,10 @@ def linearly_dependent {m : ℕ} (vector_list : Fin m → V ) : Prop :=
 -- ═══════════════════════════════════════════════════════════════════════════
 theorem linearly_dependent_iff_not_linearly_independent
                                {m : ℕ} (vector_list : Fin m → V ) :
-    linearly_dependent (𝔽 := 𝔽 ) vector_list ↔
+    LinearlyDependent (𝔽 := 𝔽 ) vector_list ↔
     ¬ linearly_independent (𝔽 := 𝔽 ) vector_list := by
     constructor
-    · unfold linearly_dependent
+    · unfold LinearlyDependent
       unfold linearly_independent
       intro h_lin_dep
       obtain ⟨ a_list, h_lin_dep_conjunction ⟩ := h_lin_dep
@@ -86,7 +87,7 @@ theorem linearly_dependent_iff_not_linearly_independent
       specialize h_lin_indep h_lin_comb_eq_zero
       exact absurd h_lin_indep h_alist_nonzero
 
-    · unfold linearly_dependent
+    · unfold LinearlyDependent
       unfold linearly_independent
       intro h_lin_indep
       push_neg at h_lin_indep
@@ -96,7 +97,132 @@ theorem linearly_dependent_iff_not_linearly_independent
 
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- linear dependence lemma
--- ═══════════════════════════════════════════════════════════════════════════
+def takeFirst {V : Type*} {m : ℕ} (f : Fin m → V) (k : Fin m) :
+    Fin k.val → V := fun i => f ⟨ i.val, lt_trans i.isLt k.isLt ⟩
 
--- TBD
+-- ═══════════════════════════════════════════════════════════════════════════
+-- helper lemma
+-- ═══════════════════════════════════════════════════════════════════════════
+lemma lindep_removed_term_eq_lincomb_rest {𝔽 : Type*} [Field 𝔽] {V : Type*} [AddCommGroup V]
+    [Module 𝔽 V] {m : ℕ} (v : Fin (m+1) → V) (a : Fin (m+1) → 𝔽) (k : Fin (m+1))
+    (hk : a k ≠ 0) (h_lincomb_eq_0 : ∑ i, a i • v i = 0) :
+    v k = ∑ (i : Fin m), (- (a k)⁻¹ * a (k.succAbove i)) • v (k.succAbove i) := by
+
+  -- Split out the k term from the summation.
+  have h_split_lincomb_eq_0 :
+     a k • v k + ∑ i, a (k.succAbove i) • v (k.succAbove i) = 0 := by
+       rw [← Fin.sum_univ_succAbove (f := fun j => a j • v j) (x := k)]
+       exact h_lincomb_eq_0
+
+  -- Put the k term and the summation on opposites sides of the equality.
+  have h_split_k_eq_neg_lincomb :
+             a k • v k = -∑ (i : Fin m), a (k.succAbove i) • v (k.succAbove i)
+                        := by rw [eq_neg_iff_add_eq_zero, h_split_lincomb_eq_0]
+
+  -- Isolate the kth vector.
+  have h_kth_vector_calc :
+          v k = (a k)⁻¹ • -∑ (i : Fin m), a (k.succAbove i) • v (k.succAbove i)
+                       := by rw [← h_split_k_eq_neg_lincomb, inv_smul_smul₀ hk]
+
+  -- Now the rest can be done in a calc.
+  calc v k
+      = (a k)⁻¹ • -∑ (i : Fin m), a (k.succAbove i) • v (k.succAbove i)
+                                                         := h_kth_vector_calc
+    _ = -(a k)⁻¹ • ∑ (i : Fin m), a (k.succAbove i) • v (k.succAbove i)
+                                                         := by norm_num
+    _ = ∑ (i : Fin m), -(a k)⁻¹ • a (k.succAbove i) • v (k.succAbove i)
+                                                    := by rw [Finset.smul_sum]
+    _ = ∑ (i : Fin m), -(a⁻¹) k • a (k.succAbove i) • v (k.succAbove i)
+                                                            := by trivial
+    _ = ∑ (i : Fin m), (-(a⁻¹) k * a (k.succAbove i)) • v (k.succAbove i)
+                                        := by congr 1; ext i; rw [←mul_smul]
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- linear dependence lemma (first part)
+-- ═══════════════════════════════════════════════════════════════════════════
+theorem linear_dependence_lemma {m : ℕ} (vector_list : Fin m → V)
+  (h_dep : LinearlyDependent (𝔽 := 𝔽) vector_list) :
+  ∃ (k : Fin m),
+    vector_list k ∈ spanSubspace (𝔽 := 𝔽) (takeFirst vector_list k) := by
+    unfold LinearlyDependent at *
+    unfold spanSubspace at *
+
+    obtain ⟨ a_list, h_a_neq_0, h_lincomb_eq_0⟩ := h_dep
+
+    rw[Function.ne_iff] at h_a_neq_0
+    obtain⟨ i, h_alist_i_neq_0⟩ := h_a_neq_0
+
+    have h_m_ne_0 : m ≠ 0 := by rintro rfl; exact i.elim0
+    obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero h_m_ne_0
+
+    classical
+    have h_nonempty :
+          (Finset.filter (fun j => a_list j ≠ 0) Finset.univ).Nonempty := by
+      use i
+      rw [Finset.mem_filter]
+      exact ⟨Finset.mem_univ i, h_alist_i_neq_0⟩
+
+    let k := Finset.max' (Finset.filter (fun j => a_list j ≠ 0) Finset.univ)
+      h_nonempty
+
+    use k
+
+    simp only [Submodule.mem_mk]
+    simp only [AddSubmonoid.mem_mk]
+    simp only [AddSubsemigroup.mem_mk]
+    simp only [Set.mem_setOf_eq]
+
+    use (-(a_list k)⁻¹) • takeFirst a_list k
+
+    have h_ak_ne_0 : a_list k ≠ 0 := by
+      have h_k_mem := Finset.max'_mem
+        (Finset.filter (fun j => a_list j ≠ 0) Finset.univ) h_nonempty
+      rw [Finset.mem_filter] at h_k_mem
+      exact h_k_mem.2
+
+    rw [lindep_removed_term_eq_lincomb_rest vector_list a_list k h_ak_ne_0  h_lincomb_eq_0]
+
+    rw [←Finset.sum_filter_add_sum_filter_not _ (fun i => i.castSucc < k)]
+
+    have h_zero_above : ∀ (j : Fin (n+1)), k < j → a_list j = 0 := by
+      intro j h_k_lt_j
+      by_contra h_a_list_j_ne_0
+      have h_j_in : j ∈ (Finset.univ.filter (fun j => a_list j ≠ 0)) :=
+        Finset.mem_filter.mpr ⟨Finset.mem_univ j, h_a_list_j_ne_0⟩
+      exact absurd (Finset.le_max' _ j h_j_in) (not_le.mpr h_k_lt_j)
+
+    have h_unfiltered_zero :
+      ∑ x with ¬x.castSucc < k,
+        (-(a_list k)⁻¹ * a_list (k.succAbove x))
+                                       • vector_list (k.succAbove x) = 0 := by
+
+      apply Finset.sum_eq_zero
+      intro i h_i_gt_k
+      rw [Finset.mem_filter] at h_i_gt_k
+      rw [Fin.succAbove_of_le_castSucc _ _ (not_lt.mp h_i_gt_k.2)]
+
+      have h_k_lt_isucc : k < i.succ :=
+        lt_of_le_of_lt (not_lt.mp h_i_gt_k.2) (i.castSucc_lt_succ)
+
+      rw [h_zero_above _ h_k_lt_isucc]
+      simp
+
+    rw [h_unfiltered_zero, add_zero]
+
+    apply Finset.sum_bij
+     (fun (a : Fin n) (ha : a ∈ _) =>
+               (⟨a.val, by rw [Finset.mem_filter] at ha; exact ha.2⟩ : Fin ↑k))
+     (fun _ _ => Finset.mem_univ _)
+     (fun a₁ _ a₂ _ heq => Fin.ext (congr_arg (Fin.val (n := ↑k)) heq))
+     (fun b _ => by
+       refine ⟨⟨b.val, ?_⟩, ?_, ?_⟩
+       · exact lt_of_lt_of_le b.isLt (Nat.lt_succ_iff.mp k.isLt)
+       · rw [Finset.mem_filter]
+         exact ⟨Finset.mem_univ _, b.isLt⟩
+       · rfl)
+      (fun a ha => by
+        rw [Finset.mem_filter] at ha
+        rw [Fin.succAbove_of_castSucc_lt _ _ ha.2]
+        simp only [Pi.smul_apply, takeFirst, smul_eq_mul]
+        rfl
+      )
