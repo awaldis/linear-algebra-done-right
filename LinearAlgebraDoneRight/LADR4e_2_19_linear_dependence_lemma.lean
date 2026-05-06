@@ -97,6 +97,8 @@ theorem linearly_dependent_iff_not_linearly_independent
 
 
 -- ═══════════════════════════════════════════════════════════════════════════
+-- Define the first k values in a list.
+-- ═══════════════════════════════════════════════════════════════════════════
 def takeFirst {V : Type*} {m : ℕ} (f : Fin m → V) (k : Fin m) :
     Fin k.val → V := fun i => f ⟨ i.val, lt_trans i.isLt k.isLt ⟩
 
@@ -138,91 +140,111 @@ lemma lindep_removed_term_eq_lincomb_rest {𝔽 : Type*} [Field 𝔽] {V : Type*
                                         := by congr 1; ext i; rw [←mul_smul]
 
 -- ═══════════════════════════════════════════════════════════════════════════
+-- Show that {x : Fin n | x < k} and Fin k are equivalent.
+-- ═══════════════════════════════════════════════════════════════════════════
+def fin_filter_equiv_fin {n : ℕ} (k : Fin (n + 1)) :
+  {x : Fin n // x.castSucc < k} ≃ Fin k.val where
+    toFun     := fun x => ⟨x.val.val, x.property⟩
+    invFun    := fun y => ⟨⟨y.val, by omega ⟩, y.isLt  ⟩
+    left_inv  := by intro x; rfl
+    right_inv := by intro x; rfl
+
+-- ═══════════════════════════════════════════════════════════════════════════
 -- linear dependence lemma (first part)
 -- ═══════════════════════════════════════════════════════════════════════════
 theorem linear_dependence_lemma {m : ℕ} (vector_list : Fin m → V)
   (h_dep : LinearlyDependent (𝔽 := 𝔽) vector_list) :
   ∃ (k : Fin m),
-    vector_list k ∈ spanSubspace (𝔽 := 𝔽) (takeFirst vector_list k) := by
-    unfold LinearlyDependent at *
-    unfold spanSubspace at *
+  vector_list k ∈ spanSubspace (𝔽 := 𝔽) (takeFirst vector_list k) := by
+  unfold LinearlyDependent at *
 
-    obtain ⟨ a_list, h_a_neq_0, h_lincomb_eq_0⟩ := h_dep
+  obtain ⟨ a_list, h_a_neq_0, h_lincomb_eq_0⟩ := h_dep
 
-    rw[Function.ne_iff] at h_a_neq_0
-    obtain⟨ i, h_alist_i_neq_0⟩ := h_a_neq_0
+  rw[Function.ne_iff] at h_a_neq_0
+  obtain⟨ i, h_alist_i_neq_0⟩ := h_a_neq_0
 
-    have h_m_ne_0 : m ≠ 0 := by rintro rfl; exact i.elim0
-    obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero h_m_ne_0
+  have h_m_ne_0 : m ≠ 0 := by rintro rfl; exact i.elim0
+  obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero h_m_ne_0
 
-    classical
-    have h_nonempty :
-          (Finset.filter (fun j => a_list j ≠ 0) Finset.univ).Nonempty := by
-      use i
-      rw [Finset.mem_filter]
-      exact ⟨Finset.mem_univ i, h_alist_i_neq_0⟩
+  classical
+  have h_nonempty :
+   (Finset.filter (fun j => a_list j ≠ 0) Finset.univ).Nonempty := by
+   use i
+   rw [Finset.mem_filter]
+   exact ⟨Finset.mem_univ i, h_alist_i_neq_0⟩
 
-    let k := Finset.max' (Finset.filter (fun j => a_list j ≠ 0) Finset.univ)
-      h_nonempty
+  let k := Finset.max' (Finset.filter (fun j => a_list j ≠ 0) Finset.univ)
+    h_nonempty
 
-    use k
+  -- Now let's work on the goal.
+  unfold spanSubspace
+  use k
 
-    simp only [Submodule.mem_mk]
-    simp only [AddSubmonoid.mem_mk]
-    simp only [AddSubsemigroup.mem_mk]
-    simp only [Set.mem_setOf_eq]
+  simp only [Submodule.mem_mk]
+  simp only [AddSubmonoid.mem_mk]
+  simp only [AddSubsemigroup.mem_mk]
+  simp only [Set.mem_setOf_eq]
 
-    use (-(a_list k)⁻¹) • takeFirst a_list k
+  use (-(a_list k)⁻¹) • takeFirst a_list k
 
-    have h_ak_ne_0 : a_list k ≠ 0 := by
-      have h_k_mem := Finset.max'_mem
-        (Finset.filter (fun j => a_list j ≠ 0) Finset.univ) h_nonempty
-      rw [Finset.mem_filter] at h_k_mem
-      exact h_k_mem.2
+  have h_ak_ne_0 : a_list k ≠ 0 := by
+    have h_k_mem := Finset.max'_mem
+      (Finset.filter (fun j => a_list j ≠ 0) Finset.univ) h_nonempty
+    rw [Finset.mem_filter] at h_k_mem
+    exact h_k_mem.2
 
-    rw [lindep_removed_term_eq_lincomb_rest vector_list a_list k h_ak_ne_0  h_lincomb_eq_0]
+  -- Use a helper lemma to write the LHS as a linear combination of all the other
+  -- vectors (other than k itself).
+  rw [lindep_removed_term_eq_lincomb_rest vector_list a_list k h_ak_ne_0  h_lincomb_eq_0]
 
-    rw [←Finset.sum_filter_add_sum_filter_not _ (fun i => i.castSucc < k)]
+  -- Split the LHS sum into two sums: one below k and one above.
+  rw [←Finset.sum_filter_add_sum_filter_not _ (fun i => i.castSucc < k)]
 
-    have h_zero_above : ∀ (j : Fin (n+1)), k < j → a_list j = 0 := by
-      intro j h_k_lt_j
-      by_contra h_a_list_j_ne_0
-      have h_j_in : j ∈ (Finset.univ.filter (fun j => a_list j ≠ 0)) :=
-        Finset.mem_filter.mpr ⟨Finset.mem_univ j, h_a_list_j_ne_0⟩
-      exact absurd (Finset.le_max' _ j h_j_in) (not_le.mpr h_k_lt_j)
+  -- Show that all the coefficients above k are zero.
+  have h_a_is_zero_above_k : ∀ (j : Fin (n+1)), k < j → a_list j = 0 := by
+    intro j h_k_lt_j
+    by_contra h_a_list_j_ne_0
+    have h_j_in : j ∈ (Finset.univ.filter (fun j => a_list j ≠ 0)) :=
+      Finset.mem_filter.mpr ⟨Finset.mem_univ j, h_a_list_j_ne_0⟩
+    exact absurd (Finset.le_max' _ j h_j_in) (not_le.mpr h_k_lt_j)
 
-    have h_unfiltered_zero :
-      ∑ x with ¬x.castSucc < k,
-        (-(a_list k)⁻¹ * a_list (k.succAbove x))
-                                       • vector_list (k.succAbove x) = 0 := by
+  -- Show that the linear combination above k is zero.
+  have h_lincomb_above_k_is_zero :
+    ∑ x with ¬x.castSucc < k,
+      (-(a_list k)⁻¹ * a_list (k.succAbove x))
+                                     • vector_list (k.succAbove x) = 0 := by
 
-      apply Finset.sum_eq_zero
-      intro i h_i_gt_k
-      rw [Finset.mem_filter] at h_i_gt_k
-      rw [Fin.succAbove_of_le_castSucc _ _ (not_lt.mp h_i_gt_k.2)]
+    apply Finset.sum_eq_zero
+    intro i h_i_gt_k
+    rw [Finset.mem_filter] at h_i_gt_k
+    rw [Fin.succAbove_of_le_castSucc _ _ (not_lt.mp h_i_gt_k.2)]
 
-      have h_k_lt_isucc : k < i.succ :=
-        lt_of_le_of_lt (not_lt.mp h_i_gt_k.2) (i.castSucc_lt_succ)
+    have h_k_lt_isucc : k < i.succ :=
+      lt_of_le_of_lt (not_lt.mp h_i_gt_k.2) (i.castSucc_lt_succ)
 
-      rw [h_zero_above _ h_k_lt_isucc]
-      simp
+    rw [h_a_is_zero_above_k _ h_k_lt_isucc]
+    simp
 
-    rw [h_unfiltered_zero, add_zero]
+  -- Make the sum above k disappear from the goal since it's zero.
+  rw [h_lincomb_above_k_is_zero, add_zero]
 
-    apply Finset.sum_bij
-     (fun (a : Fin n) (ha : a ∈ _) =>
-               (⟨a.val, by rw [Finset.mem_filter] at ha; exact ha.2⟩ : Fin ↑k))
-     (fun _ _ => Finset.mem_univ _)
-     (fun a₁ _ a₂ _ heq => Fin.ext (congr_arg (Fin.val (n := ↑k)) heq))
-     (fun b _ => by
-       refine ⟨⟨b.val, ?_⟩, ?_, ?_⟩
-       · exact lt_of_lt_of_le b.isLt (Nat.lt_succ_iff.mp k.isLt)
-       · rw [Finset.mem_filter]
-         exact ⟨Finset.mem_univ _, b.isLt⟩
-       · rfl)
-      (fun a ha => by
-        rw [Finset.mem_filter] at ha
-        rw [Fin.succAbove_of_castSucc_lt _ _ ha.2]
-        simp only [Pi.smul_apply, takeFirst, smul_eq_mul]
-        rfl
-      )
+  -- Show set and subtype equivalence.
+  have h_subtype : ∀ (x : Fin n),
+    x ∈ Finset.filter (fun x => x.castSucc < k)  Finset.univ ↔
+                                                      x.castSucc < k := by simp
+
+  -- Replace the set in the goal with it's equivalent subtype.
+  rw [Finset.sum_subtype _ h_subtype]
+
+  -- Replace the Fin ↑k index type with { x // x.castSucc < k } to make the
+  -- indices have the same type.
+  rw [← Equiv.sum_comp (fin_filter_equiv_fin k)]
+
+  -- If the sums are equivalent and their indexes are equivalent, then their
+  --functions must be equivalent at each index.
+  apply Finset.sum_congr rfl
+
+  intro x hx
+  simp only [fin_filter_equiv_fin, Equiv.coe_fn_mk, takeFirst]
+  rw[Fin.succAbove_of_castSucc_lt _ _ x.property]
+  congr 1
