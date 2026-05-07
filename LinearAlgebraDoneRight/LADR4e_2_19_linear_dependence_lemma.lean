@@ -156,6 +156,8 @@ theorem linear_dependence_lemma {m : ℕ} (vector_list : Fin m → V)
   (h_dep : LinearlyDependent (𝔽 := 𝔽) vector_list) :
   ∃ (k : Fin m),
   vector_list k ∈ spanSubspace (𝔽 := 𝔽) (takeFirst vector_list k) := by
+
+  -- Unfold assumptions into the context...
   unfold LinearlyDependent at *
 
   obtain ⟨ a_list, h_a_neq_0, h_lincomb_eq_0⟩ := h_dep
@@ -203,10 +205,14 @@ theorem linear_dependence_lemma {m : ℕ} (vector_list : Fin m → V)
   -- Show that all the coefficients above k are zero.
   have h_a_is_zero_above_k : ∀ (j : Fin (n+1)), k < j → a_list j = 0 := by
     intro j h_k_lt_j
+    --Suppose there is a j > k with nonzero coefficient.
     by_contra h_a_list_j_ne_0
-    have h_j_in : j ∈ (Finset.univ.filter (fun j => a_list j ≠ 0)) :=
-      Finset.mem_filter.mpr ⟨Finset.mem_univ j, h_a_list_j_ne_0⟩
-    exact absurd (Finset.le_max' _ j h_j_in) (not_le.mpr h_k_lt_j)
+    -- Then j would be in the set of nonzero coefficients.
+    have h_j_in_nonzero_set : j ∈ (Finset.univ.filter (fun j => a_list j ≠ 0)) :=
+                       Finset.mem_filter.mpr ⟨Finset.mem_univ j, h_a_list_j_ne_0⟩
+    -- Then j could be equal to the max index of the coefficients which
+    -- contradicts our assumption that k is the max value and j < k.
+    exact absurd (Finset.le_max' _ j h_j_in_nonzero_set) (not_le.mpr h_k_lt_j)
 
   -- Show that the linear combination above k is zero.
   have h_lincomb_above_k_is_zero :
@@ -240,11 +246,11 @@ theorem linear_dependence_lemma {m : ℕ} (vector_list : Fin m → V)
   -- indices have the same type.
   rw [← Equiv.sum_comp (fin_filter_equiv_fin k)]
 
-  -- If the sums are equivalent and their indexes are equivalent, then their
-  --functions must be equivalent at each index.
+  simp only [fin_filter_equiv_fin, Equiv.coe_fn_mk, takeFirst]
+
+  -- New goal: the functions must be equivalent at each index.
   apply Finset.sum_congr rfl
 
   intro x hx
-  simp only [fin_filter_equiv_fin, Equiv.coe_fn_mk, takeFirst]
   rw[Fin.succAbove_of_castSucc_lt _ _ x.property]
   congr 1
