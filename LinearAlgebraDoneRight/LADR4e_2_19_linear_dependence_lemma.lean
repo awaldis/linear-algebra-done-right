@@ -1,3 +1,4 @@
+import LinearAlgebraDoneRight.LADR4e_2_6_span_is_the_smallest_containing_subspace
 import Mathlib.Algebra.Module.Basic
 import Mathlib.Algebra.Module.Submodule.Basic
 import Mathlib.Data.Fin.Basic
@@ -16,49 +17,6 @@ variable {V : Type*} [AddCommGroup V] [Module 𝔽 V]
 Sheldon Axler. [Linear Algebra Done Right](https://linear.axler.net), fourth
 edition, Undergraduate Texts in Mathematics, Springer, 2024
 -/
--- ═══════════════════════════════════════════════════════════════════════════
--- Define the span as a subspace of V.
--- ═══════════════════════════════════════════════════════════════════════════
-def spanSubspace {m : ℕ} (vector_list : Fin m → V ) : Submodule 𝔽 V where
-
-  carrier := { v : V | ∃ (a : Fin m → 𝔽), v = ∑ k, a k • vector_list k }
-  zero_mem' := by
-    simp only [Set.mem_setOf_eq]
-    use 0
-    simp only [Pi.zero_apply]
-    norm_num
-
-  add_mem' := by
-    intro v₁ v₂ h_v₁_in_set h_v₂_in_set
-    simp only [Set.mem_setOf_eq] at *
-
-    obtain ⟨a_list, h_v₁_eq_a_lincomb⟩ := h_v₁_in_set
-    obtain ⟨c_list, h_v₂_eq_c_lincomb⟩ := h_v₂_in_set
-
-    use a_list + c_list
-
-    calc v₁ + v₂
-        = ∑ k, a_list k • vector_list k + v₂  := by rw [h_v₁_eq_a_lincomb]
-      _ = ∑ k, a_list k • vector_list k + ∑ k, c_list k • vector_list k
-                                              := by rw [h_v₂_eq_c_lincomb]
-      _ = ∑ k, (a_list • vector_list) k + ∑ k, (c_list • vector_list) k
-                                              := by norm_num
-      _ = ∑ k, ((a_list • vector_list) k + (c_list • vector_list) k )
-                                              := by rw[Finset.sum_add_distrib]
-
-      _ = ∑ k, (a_list + c_list ) k • vector_list k := by simp [add_smul]
-
-  smul_mem' := by
-    intro c v h_v_in_set
-    simp only [Set.mem_setOf_eq] at *
-    obtain ⟨a_list, h_v_eq_lincomb⟩ := h_v_in_set
-
-    use c • a_list
-    calc c • v
-        = c • ∑ k, a_list k • vector_list k   := by rw [h_v_eq_lincomb]
-      _ = ∑ k, c • a_list k • vector_list k   := by rw [Finset.smul_sum]
-      _ = ∑ k, (c • a_list) k • vector_list k := by simp [mul_smul]
-
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Define linear dependence and independence
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -101,6 +59,12 @@ theorem linearly_dependent_iff_not_linearly_independent
 -- ═══════════════════════════════════════════════════════════════════════════
 def takeFirst {V : Type*} {m : ℕ} (f : Fin m → V) (k : Fin m) :
     Fin k.val → V := fun i => f ⟨ i.val, lt_trans i.isLt k.isLt ⟩
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Remove the kth value from a list.
+-- ═══════════════════════════════════════════════════════════════════════════
+def removeAt {V : Type*} {m : ℕ} (f : Fin (m+1) → V) (k : Fin (m+1)) :
+    Fin m → V := fun i => f (Fin.succAbove k i)
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- helper lemma
@@ -160,10 +124,10 @@ theorem linear_dependence_lemma {m : ℕ} (vector_list : Fin m → V)
   -- Unfold assumptions into the context...
   unfold LinearlyDependent at *
 
-  obtain ⟨ a_list, h_a_neq_0, h_lincomb_eq_0⟩ := h_dep
+  obtain ⟨a_list, h_a_neq_0, h_lincomb_eq_0⟩ := h_dep
 
   rw[Function.ne_iff] at h_a_neq_0
-  obtain⟨ i, h_alist_i_neq_0⟩ := h_a_neq_0
+  obtain⟨i, h_alist_i_neq_0⟩ := h_a_neq_0
 
   have h_m_ne_0 : m ≠ 0 := by rintro rfl; exact i.elim0
   obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero h_m_ne_0
@@ -254,3 +218,24 @@ theorem linear_dependence_lemma {m : ℕ} (vector_list : Fin m → V)
   intro x hx
   rw[Fin.succAbove_of_castSucc_lt _ _ x.property]
   congr 1
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- linear dependence lemma (second part) - TBD
+-- ═══════════════════════════════════════════════════════════════════════════
+lemma linear_dependence_lemma_part2
+  {n :ℕ} (vector_list : Fin (n+1) → V) (k : Fin (n+1))
+  (h_vk_in_span : vector_list k ∈ spanSubspace (𝔽 := 𝔽) (takeFirst vector_list k)) :
+  spanSubspace (𝔽 := 𝔽) vector_list =
+  spanSubspace (𝔽 := 𝔽) (removeAt vector_list k) := by
+
+  apply le_antisymm
+  · -- Proving this direction is hard.
+    intro u h_u_in_full_span
+    obtain ⟨a_list,    h_a_list_full⟩      := h_u_in_full_span
+    obtain ⟨a_list_tf, h_a_list_takeFirst⟩ := h_vk_in_span
+    -- The rest is TBD
+    sorry
+  · -- Proving this direction is easy.
+    apply spanSubspace_is_smallest
+    intro i
+    exact each_vector_in_span vector_list (k.succAbove i)
